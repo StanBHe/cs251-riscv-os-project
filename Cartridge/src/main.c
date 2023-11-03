@@ -1,7 +1,8 @@
 #include <stdint.h>
 
-volatile int global = 42;
-volatile uint32_t controller_status = 0;
+uint32_t GetTicks(void);
+uint32_t GetController(void);
+int32_t GetReset(void);
 
 volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint8_t *MEDIUM_DATA = (volatile uint8_t *)(0x500D0000);
@@ -12,10 +13,11 @@ volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
 int main() {
-    int a = 4;
-    int b = 12;
     int last_global = 42;
     int x_pos = 12;
+
+    uint32_t global = 42;
+    uint32_t controller_status = 0;
 
     VIDEO_MEMORY[0] = 'H';
     VIDEO_MEMORY[1] = 'e';
@@ -38,11 +40,16 @@ int main() {
         }
     }
     MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
+    MEDIUM_PALETTE[257] = 0xFF00FF00;
     MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
     *MODE_REGISTER = 1;
+    int last_reset = GetReset();
+    int reset;
     while (1) {
-        int c = a + b + global;
+        reset = GetReset();
+        global= GetTicks();
         if(global != last_global){
+            controller_status = GetController();
             if(controller_status){
                 VIDEO_MEMORY[x_pos] = ' ';
                 if(controller_status & 0x1){
@@ -66,9 +73,13 @@ int main() {
                     }
                 }
                 VIDEO_MEMORY[x_pos] = 'X';
-                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
             }
             last_global = global;
+            if(last_reset != reset){
+                x_pos = 0;
+                last_reset = reset;
+            }
+            MEDIUM_CONTROL[0] = MediumControl(global%2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
         }
     }
     return 0;
