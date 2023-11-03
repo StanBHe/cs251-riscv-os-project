@@ -62,13 +62,17 @@ extern volatile int global;
 extern volatile uint32_t controller_status;
 extern volatile int reset;
 
-void c_interrupt_handler(void){
+void c_interrupt_handler(uint32_t mcause){
 
-    if(INTERRUPT_PENDING_REGISTER & 0x2){
+    if(mcause == 2147483655){
         uint64_t NewCompare = (((uint64_t)MTIMECMP_HIGH)<<32) | MTIMECMP_LOW;
-        NewCompare += 100;
+        NewCompare += 1000;
         MTIMECMP_HIGH = NewCompare>>32;
-        MTIMECMP_LOW = NewCompare;
+        MTIMECMP_LOW = NewCompare;  
+        global++;
+    }
+    else if (mcause == 2147483659){
+        if(INTERRUPT_PENDING_REGISTER & 0x2){
         global++;
         controller_status = CONTROLLER;
         INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFB);
@@ -81,6 +85,7 @@ void c_interrupt_handler(void){
             reset++;
         }
         INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFD);
+    }
     }
 }
 

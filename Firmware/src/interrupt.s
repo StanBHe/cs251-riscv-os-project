@@ -22,6 +22,7 @@ _interrupt_handler:
     .option norelax
     la gp, __global_pointer$
     .option pop
+    csrr a0, mcause
     call    c_interrupt_handler
     lw	    gp,40(sp)
     lw	    ra,36(sp)

@@ -35,12 +35,13 @@ int main() {
 
     // Fill out sprite data
     for(int y = 0; y < 32; y++){
-        for(int x = 0; x < 32; x++){
+        for(int x = 0; x < 32; x++){    
             MEDIUM_DATA[y*32+x] = 1;
         }
     }
     MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
     MEDIUM_PALETTE[257] = 0xFF00FF00;
+    MEDIUM_PALETTE[513] = 0xFF0000FF;
     MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
     *MODE_REGISTER = 1;
     int last_reset = GetReset();
@@ -79,7 +80,7 @@ int main() {
                 x_pos = 0;
                 last_reset = reset;
             }
-            MEDIUM_CONTROL[0] = MediumControl(global%2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+            MEDIUM_CONTROL[0] = MediumControl(global%3, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
         }
     }
     return 0;
