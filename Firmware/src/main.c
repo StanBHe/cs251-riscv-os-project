@@ -18,20 +18,6 @@ int main() {
     char *Buffer = malloc(32);
     strcpy(Buffer,"OS STARTED");
     strcpy((char *)VIDEO_MEMORY,Buffer);
-    /*VIDEO_MEMORY[0] = 'H';
-    VIDEO_MEMORY[1] = 'e';
-    VIDEO_MEMORY[2] = 'l';
-    VIDEO_MEMORY[3] = 'l';
-    VIDEO_MEMORY[4] = 'o';
-    VIDEO_MEMORY[5] = ' ';
-    VIDEO_MEMORY[6] = 'W';
-    VIDEO_MEMORY[7] = 'o';
-    VIDEO_MEMORY[8] = 'r';
-    VIDEO_MEMORY[9] = 'l';
-    VIDEO_MEMORY[10] = 'd';
-    VIDEO_MEMORY[11] = '!';
-    VIDEO_MEMORY[12] = 'X';*/
-
 
     while (1){
         if(*CartridgeStatus & 0x1){

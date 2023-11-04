@@ -64,29 +64,31 @@ extern volatile int reset;
 
 void c_interrupt_handler(uint32_t mcause){
 
-    if(mcause == 2147483655){
+    if(mcause == 2147483655) {
         uint64_t NewCompare = (((uint64_t)MTIMECMP_HIGH)<<32) | MTIMECMP_LOW;
         NewCompare += 1000;
         MTIMECMP_HIGH = NewCompare>>32;
         MTIMECMP_LOW = NewCompare;  
         global++;
+        controller_status = CONTROLLER;
     }
     else if (mcause == 2147483659){
-        if(INTERRUPT_PENDING_REGISTER & 0x2){
-        global++;
-        controller_status = CONTROLLER;
-        INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFB);
+        if(INTERRUPT_PENDING_REGISTER & 0x2) {
+            global++;
+            controller_status = CONTROLLER;
+            INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFB);
+        }
     }
 
-    if(INTERRUPT_PENDING_REGISTER & 0x4){
-        if (reset == 1){
+    if(INTERRUPT_PENDING_REGISTER & 0x4) {
+        if (reset == 1) {
             reset--;
-        }else{
+        }
+        else {
             reset++;
         }
         INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFD);
-    }
-    }
+    }   
 }
 
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){

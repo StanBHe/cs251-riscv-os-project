@@ -41,7 +41,7 @@ int main() {
     }
     MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
     MEDIUM_PALETTE[257] = 0xFF00FF00;
-    MEDIUM_PALETTE[513] = 0xFF0000FF;
+    //MEDIUM_PALETTE[513] = 0xFF0000FF;
     MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
     *MODE_REGISTER = 1;
     int last_reset = GetReset();
@@ -80,7 +80,7 @@ int main() {
                 x_pos = 0;
                 last_reset = reset;
             }
-            MEDIUM_CONTROL[0] = MediumControl(global%3, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+            MEDIUM_CONTROL[0] = MediumControl((global / 10) % 2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
         }
     }
     return 0;
