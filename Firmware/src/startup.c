@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <time.h>
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -66,7 +67,7 @@ void c_interrupt_handler(uint32_t mcause){
 
     if(mcause == 2147483655) {
         uint64_t NewCompare = (((uint64_t)MTIMECMP_HIGH)<<32) | MTIMECMP_LOW;
-        NewCompare += 1000;
+        NewCompare += 100;
         MTIMECMP_HIGH = NewCompare>>32;
         MTIMECMP_LOW = NewCompare;  
         global++;
@@ -93,7 +94,7 @@ void c_interrupt_handler(uint32_t mcause){
 
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
     if(1 == call){
-        return global;
+        return getTicks();
     }
     else if(2 == call){
         return controller_status;

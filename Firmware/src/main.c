@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
