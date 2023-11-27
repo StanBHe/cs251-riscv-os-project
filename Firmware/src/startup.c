@@ -94,7 +94,7 @@ void c_interrupt_handler(uint32_t mcause){
 
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
     if(1 == call){
-        return getTicks();
+        return global;
     }
     else if(2 == call){
         return controller_status;
