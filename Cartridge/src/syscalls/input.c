@@ -1,4 +1,4 @@
-#include "input.h"
+#include "./input.h"
 #include <stdint.h>
 
 uint32_t GetController();

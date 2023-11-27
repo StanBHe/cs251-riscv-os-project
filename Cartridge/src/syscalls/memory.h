@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-void* malloc();
+void* malloc(size_t size);
 
 void* realloc(void* pointer);
 

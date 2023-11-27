@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <time.h>
-#include <input.h>
+#include "./syscalls/input.h"
+
 
 volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint8_t *MEDIUM_DATA = (volatile uint8_t *)(0x500D0000);

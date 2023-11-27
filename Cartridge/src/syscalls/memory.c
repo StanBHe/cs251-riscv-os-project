@@ -1,10 +1,11 @@
 #include "memory.h"
+#include "stdio.h"
 
-void* malloc() {
+void* malloc(size_t size) {
     return 0;
 };
 
-void* realloc(void* pointer) {
+void* realloc(void* pointer, size_t size) {
     return 0;
 };
 

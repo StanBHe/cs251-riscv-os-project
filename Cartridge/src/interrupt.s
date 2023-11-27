@@ -35,4 +35,53 @@ GetController:
 GetReset:
     li a5, 3
     ecall
+generate_event:
+    li a5, 4
+    ecall
+trigger_event:
+    li a5, 5
+    ecall
+malloc:
+    li a5, 6
+    ecall
+realloc:
+    li a5, 7
+    ecall
+free:
+    li a5, 8
+    ecall
+loadSprites:
+    li a5, 9
+    ecall
+drawSprites:
+    li a5, 10
+    ecall
+saveGame:
+    li a5, 11
+    ecall
+getSaves:
+    li a5, 12
+    ecall
+getSave:
+    li a5, 13
+    ecall
+fork:
+    li a5, 14
+    ecall
+exec:
+    li a5, 15
+    ecall
+kill:
+    li a5, 16
+    ecall
+wait:
+    li a5, 17
+    ecall
+get_ppid:
+    li a5, 18
+    ecall
+getTicks:
+    li a5, 19
+    ecall
+
 
