@@ -1,5 +1,7 @@
 .section .text, "ax"
 .global _interrupt_handler, GetTicks, GetController, GetReset
+#, generate_event, trigger_event, malloc, realloc, free, loadSprites, drawSprites, saveGame, getSaves, getSave, fork, exec, kill, wait, get_ppid, getTicks
+
 _interrupt_handler:
     addi	sp,sp,-40
     sw	    ra,36(sp)
