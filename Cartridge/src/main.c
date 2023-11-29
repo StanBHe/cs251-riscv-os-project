@@ -1,6 +1,8 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include "./syscalls/input.h"
+#include "./syscalls/state.h"
 
 
 volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
@@ -45,6 +47,7 @@ int main() {
     *MODE_REGISTER = 1;
     int last_reset = GetReset();
     int reset;
+    saveGame("test","5");
     while (1) {
         reset = GetReset();
         global= GetTicks();
@@ -76,7 +79,10 @@ int main() {
             }
             last_global = global;
             if(last_reset != reset){
-                x_pos = 0;
+                // x_pos = 0;
+                char *val = getSave("test");
+                
+                x_pos = atoi(val);
                 last_reset = reset;
             }
             MEDIUM_CONTROL[0] = MediumControl((global / 10) % 2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);

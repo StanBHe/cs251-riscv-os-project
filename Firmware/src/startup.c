@@ -38,6 +38,7 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 #define MTIMECMP_LOW    (*((volatile uint32_t *)0x40000010))
 #define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
 #define CONTROLLER      (*((volatile uint32_t *)0x40000018))
+#define SAVE_DATA       0x70700000
 
 void init(void){
     uint8_t *Source = _erodata;
@@ -92,6 +93,37 @@ void c_interrupt_handler(uint32_t mcause){
     }   
 }
 
+uint32_t os_get_save(uint32_t arg0){
+    uint32_t save_address = SAVE_DATA; 
+    return save_address +0x5000;
+}
+
+uint32_t os_save_game(uint32_t arg0, uint32_t arg1){
+    
+    uint32_t save_address = SAVE_DATA;  
+    
+    while(save_address <= 0x70800000){
+        if((*((volatile uint32_t *)save_address)) == 0){
+            uint32_t save_address_half = save_address +0x5000;
+            while((*((char *)arg0)) != '\0'){
+                (*((volatile char *)save_address)) = (*((char *)arg0));
+                save_address += 0x1;
+                arg0 += 0x1;
+            }
+            (*((volatile char *)save_address)) = '\0';
+            while((*((char *)arg1)) != '\0'){
+                (*((volatile char *)save_address_half)) = (*((char *)arg1));
+                save_address_half += 0x1;
+                arg1 += 0x1;
+            }
+            (*((volatile char *)save_address_half)) = '\0';
+            return 1;
+        } 
+        save_address += 0x10000;
+    }
+    return -1;
+}
+
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
     if(1 == call){
         return global;
@@ -101,8 +133,13 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(3 == call){
         return reset;
+    }else if(11 == call){
+        return os_save_game(arg0,arg1);
+    }else if(13 == call){
+        return os_get_save(arg0);
     }
     return -1;
 
 }
+
 

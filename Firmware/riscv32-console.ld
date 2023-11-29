@@ -13,8 +13,9 @@ MEMORY
     /* riscv-console virt machine FLASH */
     FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 16M
     /* riscv-console virt machine RAM */
-    RAM (rwx)   : ORIGIN = 0x70000000, LENGTH = 8M
-    
+    RAM (rwx)   : ORIGIN = 0x70000000, LENGTH = 7M
+    /*Custom Storage*/
+    SAVES : ORIGIN = 0x70700000, LENGTH = 1M
 }
 ENTRY(_start)
 SEARCH_DIR("/opt/riscv32/riscv32-unknown-elf/lib");

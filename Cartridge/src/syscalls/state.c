@@ -1,13 +1,7 @@
 #include "state.h"
 
-int saveGame(char* data, char* saveName) {
-    return 0;
-};
+int saveGame(char* data, char* saveName);
 
-int getSaves() {
-    return 0;
-};
+int getSaves();
 
-int getSave(char* saveName) {
-    return 0;
-};
+char* getSave(char* saveName);
