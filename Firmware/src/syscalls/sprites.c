@@ -9,7 +9,7 @@ void loadSprites(uint32_t spriteData[]) {
     volatile uint8_t *M_DATA = (volatile uint8_t *)(0x500D0000);
     volatile uint8_t *S_DATA = (volatile uint8_t *)(0x500E0000);
 
-    int TOTAL_PIXELS_L = 64 *64 * 64;
+    int TOTAL_PIXELS_L = 64 * 64 * 64;
     int TOTAL_PIXELS_M = 32 * 32 * 64;
     int TOTAL_PIXELS_S = 16 * 16 * 256;
 
