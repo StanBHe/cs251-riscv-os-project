@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <time.h>
+#include "./syscalls/sprites.h"
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -102,6 +103,12 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(3 == call){
         return reset;
     }
+    else if(call == 9) {
+        loadSprites((uint32_t*)arg0);
+    }
+    // else if(call == 10) {
+    //     loadSprites((int*)arg0);
+    // }
     return -1;
 
 }

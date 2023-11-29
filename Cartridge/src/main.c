@@ -1,87 +1,35 @@
 #include <stdint.h>
 #include <time.h>
-#include "./syscalls/input.h"
+#include "./spriteSheets/spriteData.h"
 
-
-volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
-volatile uint8_t *MEDIUM_DATA = (volatile uint8_t *)(0x500D0000);
 volatile uint32_t *MEDIUM_PALETTE = (volatile uint32_t *)(0x500F2000);
 volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
 volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
 
+// void loadSprites(int spriteData[]);
+
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
 int main() {
-    int last_global = 42;
-    int x_pos = 12;
 
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
+    loadSprites(SPRITE_DATA);
 
-    VIDEO_MEMORY[0] = 'H';
-    VIDEO_MEMORY[1] = 'e';
-    VIDEO_MEMORY[2] = 'l';
-    VIDEO_MEMORY[3] = 'l';
-    VIDEO_MEMORY[4] = 'o';
-    VIDEO_MEMORY[5] = ' ';
-    VIDEO_MEMORY[6] = 'W';
-    VIDEO_MEMORY[7] = 'o';
-    VIDEO_MEMORY[8] = 'r';
-    VIDEO_MEMORY[9] = 'l';
-    VIDEO_MEMORY[10] = 'd';
-    VIDEO_MEMORY[11] = '!';
-    VIDEO_MEMORY[12] = 'X';
+    // MEDIUM_PALETTE[0] = 0xFFFFFFFF; // A R G B
+    // MEDIUM_PALETTE[0] = 0xFFFF0000; 
+    // MEDIUM_PALETTE[1] = 0xFFFFFF00; 
+    // MEDIUM_PALETTE[2] = 0xFF00FF00;
+    // MEDIUM_PALETTE[256] = 0xFF00FF00;
 
-    // Fill out sprite data
-    for(int y = 0; y < 32; y++){
-        for(int x = 0; x < 32; x++){    
-            MEDIUM_DATA[y*32+x] = 1;
-        }
-    }
-    MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
-    MEDIUM_PALETTE[257] = 0xFF00FF00;
-    //MEDIUM_PALETTE[513] = 0xFF0000FF;
-    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
+    MEDIUM_CONTROL[0] = MediumControl(0, 50, 100, 0, 0);
+    MEDIUM_CONTROL[1] = MediumControl(0, 100, 100, 0, 1);
+    MEDIUM_CONTROL[2] = MediumControl(0, 150, 100, 0, 8);
+    MEDIUM_CONTROL[3] = MediumControl(0, 50, 150, 1, 9);
+    MEDIUM_CONTROL[4] = MediumControl(0, 100, 150, 1, 16);
+    MEDIUM_CONTROL[5] = MediumControl(0, 150, 150, 1, 63);
+
+
     *MODE_REGISTER = 1;
-    int last_reset = GetReset();
-    int reset;
-    while (1) {
-        reset = GetReset();
-        global= GetTicks();
-        if(global != last_global){
-            controller_status = GetController();
-            if(controller_status){
-                VIDEO_MEMORY[x_pos] = ' ';
-                if(controller_status & 0x1){
-                    if(x_pos & 0x3F){
-                        x_pos--;
-                    }
-                }
-                if(controller_status & 0x2){
-                    if(x_pos >= 0x40){
-                        x_pos -= 0x40;
-                    }
-                }
-                if(controller_status & 0x4){
-                    if(x_pos < 0x8C0){
-                        x_pos += 0x40;
-                    }
-                }
-                if(controller_status & 0x8){
-                    if((x_pos & 0x3F) != 0x3F){
-                        x_pos++;
-                    }
-                }
-                VIDEO_MEMORY[x_pos] = 'X';
-            }
-            last_global = global;
-            if(last_reset != reset){
-                x_pos = 0;
-                last_reset = reset;
-            }
-            MEDIUM_CONTROL[0] = MediumControl((global / 10) % 2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
-        }
-    }
+
     return 0;
 }
 
