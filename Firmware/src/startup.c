@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 extern uint8_t _erodata[];
@@ -39,6 +41,8 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 #define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
 #define CONTROLLER      (*((volatile uint32_t *)0x40000018))
 #define SAVE_DATA       0x70700000
+
+char *save_data [10];
 
 void init(void){
     uint8_t *Source = _erodata;
@@ -93,9 +97,43 @@ void c_interrupt_handler(uint32_t mcause){
     }   
 }
 
+uint32_t os_get_all_saves(){
+    uint32_t save_address = SAVE_DATA;
+    int counter = 0;
+    char *empty_str = "Empty";
+    while(save_address <= 0x70800000){
+        if((*((volatile uint32_t *)save_address)) == 0){
+           save_data[counter] = empty_str;
+        }else{
+           save_data[counter] = (char *) save_address;
+        }
+        save_address += 0x10000;
+        counter++;
+    }
+    return save_data;
+}
+
 uint32_t os_get_save(uint32_t arg0){
-    uint32_t save_address = SAVE_DATA; 
-    return save_address +0x5000;
+    uint32_t save_address = SAVE_DATA;
+    while(save_address <= 0x70800000){
+        int all_same = 1;
+        if((*((volatile uint32_t *)save_address)) != 0){
+            uint32_t temp_save = save_address;
+            uint32_t temp_arg0 = arg0;
+            while(all_same == 1 && (*((volatile char *)temp_save)) != '\0' && (*((char *)temp_arg0)) != '\0'){
+                if((*((volatile char *)temp_save)) != (*((char *)temp_arg0))){
+                    all_same = 0;
+                }
+                temp_save += 0x1;
+                temp_arg0 += 0x1;
+            }
+            if(all_same == 1 && (*((volatile char *)save_address)) == (*((char *)arg0))){
+                return save_address +0x5000;
+            }
+        }
+        save_address += 0x10000;
+    }
+    return -1;
 }
 
 uint32_t os_save_game(uint32_t arg0, uint32_t arg1){
@@ -135,7 +173,10 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return reset;
     }else if(11 == call){
         return os_save_game(arg0,arg1);
-    }else if(13 == call){
+    }else if(12 == call){
+        return os_get_all_saves();
+    }
+    else if(13 == call){
         return os_get_save(arg0);
     }
     return -1;

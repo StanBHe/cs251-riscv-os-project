@@ -2,6 +2,6 @@
 
 int saveGame(char* data, char* saveName);
 
-int getSaves();
+char** getSaves();
 
 char* getSave(char* saveName);
