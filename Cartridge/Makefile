@@ -13,7 +13,7 @@ INC_DIR = ./include
 SRC_DIR = ./src
 OBJ_DIR = ./obj
 BIN_DIR = ./bin
-# SYS_DIR = ./src/syscalls
+SYS_DIR = ./src/syscalls
 
 DEBUG_MODE=TRUE
 
@@ -37,6 +37,7 @@ TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/crt0.o               \
                 $(OBJ_DIR)/interrupt.o          \
                 $(OBJ_DIR)/startup.o			\
+				$(OBJ_DIR)/sprites.o			\
 				# $(OBJ_DIR)/events.o				\
 				# $(OBJ_DIR)/memory.o				\
 				# $(OBJ_DIR)/sprites.o			\
@@ -52,11 +53,11 @@ $(BIN_DIR)/$(TARGET_NAME): $(TARGET_OBJS)
 	$(CC) $(TARGET_OBJS) -o $(BIN_DIR)/$(TARGET_NAME) $(CFLAGS) $(DEFINES) $(LDFLAGS) 
 	$(STRIP) $(BIN_DIR)/$(TARGET_NAME) -o $(BIN_DIR)/$(TARGET_NAME).strip
 
-# $(OBJ_DIR)/%.o: $(SPR_DIR)/%.s
-# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SPR_DIR)/%.s
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
 
-# $(OBJ_DIR)/%.o: $(SPR_DIR)/%.c
-# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SPR_DIR)/%.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SYS_DIR)/%.s
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@

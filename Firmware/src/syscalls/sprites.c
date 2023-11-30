@@ -30,9 +30,29 @@ void loadSprites(uint32_t spriteData[]) {
     }
 };
 
-int drawSprites(int x, int y, int z, int palette, int index) {
-    return 0;
-};
+uint8_t drawSprites(uint16_t x, uint16_t y, uint16_t z, uint16_t index, uint16_t type, uint16_t palette, uint32_t controlStructure) {
+    volatile uint32_t *L_CONTROL = (volatile uint32_t *)(0x500F5B00);
+    volatile uint32_t *M_CONTROL = (volatile uint32_t *)(0x500F5F00);
+    volatile uint32_t *S_CONTROL = (volatile uint32_t *)(0x500F6300);
+    volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
+
+    volatile uint32_t *control;
+    if(type == 0) {
+        control = L_CONTROL;
+    }
+    else if(type == 1) {
+        control = M_CONTROL;
+    }
+    else if(type == 2) {
+        control = S_CONTROL;
+    } else {
+        return -1;
+    }
+
+    control[controlStructure] = (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
+
+    *MODE_REGISTER = 1;
+}
 
 
 // uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){

@@ -1,6 +1,5 @@
 #include "events.h"
 
-
 int generate_event(char* type) {
     return 0;
 };
