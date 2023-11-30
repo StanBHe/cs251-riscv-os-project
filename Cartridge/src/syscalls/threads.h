@@ -1,7 +1,9 @@
 #ifndef THREADS_H
 #define THREADS_H
 
-int fork();
+TThreadContext InitThread();
+
+void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 
 int exec(const char* path, char* const argv[]);
 

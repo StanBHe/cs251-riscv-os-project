@@ -1,8 +1,13 @@
 #include "threads.h"
+#include <stdint.h>
 
-int fork() {
+typedef uint32_t *TThreadContext;
+
+TThreadContext InitThread() {
     return 0;
 };
+
+void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext) {};
 
 int exec(const char* path, char* const argv[]) {
     return 0;
