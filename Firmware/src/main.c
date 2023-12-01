@@ -2,31 +2,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "./syscalls/graphics.h"
+
 
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
 volatile int reset = 0;
 
-volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint32_t *CartridgeStatus = (volatile uint32_t *)(0x4000001C);
 typedef void (*FunctionPtr)(void);
 
 int main() {
-    int a = 4;
-    int b = 12;
-    int last_global = 42;
-    int x_pos = 12;
-    // char *Buffer = malloc(32);
-    // strcpy(Buffer,"OS STARTED");
-    // strcpy((char *)VIDEO_MEMORY,Buffer);
+
+    drawText(1, 1, "OS Started");
 
     while (1){
         if(*CartridgeStatus & 0x1){
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
+            drawText(1, 1, "Loading Cartridge...");
             Fun();
         }
     }
-
     return 0;
 }
 
@@ -50,5 +46,4 @@ char *_sbrk(int numbytes){
     //errno = ENOMEM;
     return NULL;
   }
-
 }

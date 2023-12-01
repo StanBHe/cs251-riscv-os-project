@@ -1,12 +1,12 @@
-#include "stdio.h"
+// #include "stdio.h"
 
-#ifndef MEMORY_H
-#define MEMORY_H
+// #ifndef MEMORY_H
+// #define MEMORY_H
 
-void* malloc(size_t size);
+// void* malloc(size_t size);
 
-void* realloc(void* pointer, size_t size);
+// void* realloc(void* pointer, size_t size);
 
-int free(void* pointer);
+// int free(void* pointer);
 
-#endif 
+// #endif 
