@@ -3,11 +3,7 @@
 
 typedef uint32_t *TThreadContext;
 
-TThreadContext InitThread() {
-    return 0;
-};
-
-void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext) {};
+TThreadContext InitThread();
 
 int exec(const char* path, char* const argv[]) {
     return 0;

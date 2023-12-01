@@ -3,8 +3,8 @@
 
 int saveGame(char* data, char* saveName);
 
-int getSaves();
+char** getSaves();
 
-int getSave(char* saveName);
+char* getSave(char* saveName);
 
 #endif 

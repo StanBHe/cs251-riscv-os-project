@@ -3,8 +3,6 @@
 
 TThreadContext InitThread();
 
-void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
-
 int exec(const char* path, char* const argv[]);
 
 int kill(int pid);

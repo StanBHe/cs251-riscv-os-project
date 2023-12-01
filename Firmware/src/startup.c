@@ -45,8 +45,6 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 
 char *save_data [10];
 
-
-
 enum States{
     RUNNING,
     BLOCKED,
@@ -54,6 +52,8 @@ enum States{
     TERMINATED,
     WAITING
 };
+
+typedef uint32_t *TThreadContext;
 
 typedef struct TCB{
     uint32_t thread_id;
@@ -63,6 +63,16 @@ typedef struct TCB{
 struct TCB* thread_control_sys;
 
 typedef void (*TThreadEntry)(void *);
+
+extern volatile int global;
+extern volatile uint32_t controller_status;
+extern volatile int reset;
+
+typedef void (*TThreadEntry)(void *);
+
+
+TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry, void *param);
+void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 
 void init(void){
     uint8_t *Source = _erodata;
@@ -85,16 +95,6 @@ void init(void){
 
     thread_control_sys = (struct TCB*)malloc(10 * sizeof(struct TCB));
 }
-
-extern volatile int global;
-extern volatile uint32_t controller_status;
-extern volatile int reset;
-
-typedef void (*TThreadEntry)(void *);
-typedef uint32_t *TThreadContext;
-
-TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry, void *param);
-void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 
 void c_interrupt_handler(uint32_t mcause){
 
@@ -190,6 +190,16 @@ uint32_t os_save_game(uint32_t arg0, uint32_t arg1){
     return -1;
 }
 
+uint32_t create_TCB(TThreadEntry *entry, void *param){
+    uint32_t OtherThreadStack[128];
+
+    TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
+    new_TCB->thread_id = InitThread(OtherThreadStack + 128, *entry, param);
+    new_TCB->thread_state = READY;
+
+    return new_TCB->thread_id;
+}
+
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
     if(1 == call){
         return global;
@@ -237,7 +247,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
 
 
     else if(20 == call){
-        return create_TCB(arg0, arg1);
+        return create_TCB((TThreadEntry *) arg0, (void *)arg1);
     }
     else if(21 == call){
         SwitchThread(arg0, arg1);
@@ -247,14 +257,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     return -1;
 }
 
-uint32_t create_TCB(TThreadEntry entry, void *param){
-    uint32_t OtherThreadStack[128];
 
-    TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
-    new_TCB->thread_id = InitThread(OtherThreadStack + 128, entry, param);
-    new_TCB->thread_state = READY;
-
-    return new_TCB->thread_id;
-}
 
 

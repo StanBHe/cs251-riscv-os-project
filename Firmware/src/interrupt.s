@@ -51,16 +51,6 @@ _system_call:
     mret
 
 InitThread:
-    csrr    ra,mscratch
-    csrw    mepc,ra
-    csrw    mscratch,gp
-    .option push
-    .option norelax
-    la gp, __global_pointer$
-    .option pop
-    call    ___
-    csrr    gp,mscratch
-
     addi    a0,a0,-52
     sw	    a1,48(a0)
     sw	    zero,44(a0)
@@ -76,6 +66,7 @@ InitThread:
     sw	    zero,4(a0)
     sw	    zero,0(a0)
     ret
+    
 SwitchThread:
     addi	sp,sp,-52
     sw	    ra,48(sp)
