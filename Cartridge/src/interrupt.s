@@ -66,9 +66,9 @@ getSaves:
 getSave:
     li a5, 13
     ecall
-fork:
-    li a5, 14
-    ecall
+#fork:
+#    li a5, 14
+#    ecall
 exec:
     li a5, 15
     ecall
@@ -84,5 +84,9 @@ get_ppid:
 getTicks:
     li a5, 19
     ecall
-
-
+InitThread:
+    li a5, 20
+    ecall
+SwitchThread:
+    li a5, 21
+    ecall

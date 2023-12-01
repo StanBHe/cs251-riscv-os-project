@@ -45,6 +45,25 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 
 char *save_data [10];
 
+
+
+enum States{
+    RUNNING,
+    BLOCKED,
+    READY,
+    TERMINATED,
+    WAITING
+};
+
+typedef struct TCB{
+    uint32_t thread_id;
+    enum States thread_state;
+} TCB;
+
+struct TCB* thread_control_sys;
+
+typedef void (*TThreadEntry)(void *);
+
 void init(void){
     uint8_t *Source = _erodata;
     uint8_t *Base = _data < _sdata ? _data : _sdata;
@@ -63,11 +82,19 @@ void init(void){
     csr_enable_interrupts();    // Global interrupt enable
     MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
+
+    thread_control_sys = (struct TCB*)malloc(10 * sizeof(struct TCB));
 }
 
 extern volatile int global;
 extern volatile uint32_t controller_status;
 extern volatile int reset;
+
+typedef void (*TThreadEntry)(void *);
+typedef uint32_t *TThreadContext;
+
+TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry, void *param);
+void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 
 void c_interrupt_handler(uint32_t mcause){
 
@@ -192,8 +219,42 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         uint16_t palette = (uint16_t)(arg2&0xFFFF);
         drawSprites(x, y, z, index, type, palette, (uint16_t)arg3);
     }
-    return -1;
+    else if(4 == call){
+        return 0;  // generate event
+    }
 
+
+    else if(16 == call){
+        return 0; // kill;
+    }
+    else if(17 == call){
+        // wait(arg0);
+        return 0;
+    }
+    else if(18 == call){
+        return 0; // get_ppid;
+    }
+
+
+    else if(20 == call){
+        return create_TCB(arg0, arg1);
+    }
+    else if(21 == call){
+        SwitchThread(arg0, arg1);
+        return 0;
+    }
+
+    return -1;
+}
+
+uint32_t create_TCB(TThreadEntry entry, void *param){
+    uint32_t OtherThreadStack[128];
+
+    TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
+    new_TCB->thread_id = InitThread(OtherThreadStack + 128, entry, param);
+    new_TCB->thread_state = READY;
+
+    return new_TCB->thread_id;
 }
 
 
