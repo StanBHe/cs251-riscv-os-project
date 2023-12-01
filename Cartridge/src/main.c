@@ -3,94 +3,36 @@
 #include <time.h>
 #include "./syscalls/input.h"
 #include "./syscalls/state.h"
-
-
-volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
-volatile uint8_t *MEDIUM_DATA = (volatile uint8_t *)(0x500D0000);
-volatile uint32_t *MEDIUM_PALETTE = (volatile uint32_t *)(0x500F2000);
-volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
-volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
-
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+#include "./spriteSheets/spriteData.h"
+#include "./syscalls/sprites.h"
 
 int main() {
-    int last_global = 42;
-    int x_pos = 12;
 
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
+    loadSprites(SPRITE_DATA);
 
-    VIDEO_MEMORY[0] = 'H';
-    VIDEO_MEMORY[1] = 'e';
-    VIDEO_MEMORY[2] = 'l';
-    VIDEO_MEMORY[3] = 'l';
-    VIDEO_MEMORY[4] = 'o';
-    VIDEO_MEMORY[5] = ' ';
-    VIDEO_MEMORY[6] = 'W';
-    VIDEO_MEMORY[7] = 'o';
-    VIDEO_MEMORY[8] = 'r';
-    VIDEO_MEMORY[9] = 'l';
-    VIDEO_MEMORY[10] = 'd';
-    VIDEO_MEMORY[11] = '!';
-    VIDEO_MEMORY[12] = 'X';
+    // x, y, z, sprite_index, sprite_type, palette, control structure_index
+    // sprite types: 0 = large, 1 = medium, 2 = small, 3 = background
 
-    // Fill out sprite data
-    for(int y = 0; y < 32; y++){
-        for(int x = 0; x < 32; x++){    
-            MEDIUM_DATA[y*32+x] = 1;
-        }
-    }
-    MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
-    MEDIUM_PALETTE[257] = 0xFF00FF00;
-    //MEDIUM_PALETTE[513] = 0xFF0000FF;
-    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
-    *MODE_REGISTER = 1;
-    int last_reset = GetReset();
-    int reset;
-    saveGame("test","5");
-    while (1) {
-        reset = GetReset();
-        global= GetTicks();
-        if(global != last_global){
-            controller_status = GetController();
-            if(controller_status){
-                VIDEO_MEMORY[x_pos] = ' ';
-                if(controller_status & 0x1){
-                    if(x_pos & 0x3F){
-                        x_pos--;
-                    }
-                }
-                if(controller_status & 0x2){
-                    if(x_pos >= 0x40){
-                        x_pos -= 0x40;
-                    }
-                }
-                if(controller_status & 0x4){
-                    if(x_pos < 0x8C0){
-                        x_pos += 0x40;
-                    }
-                }
-                if(controller_status & 0x8){
-                    if((x_pos & 0x3F) != 0x3F){
-                        x_pos++;
-                    }
-                }
-                VIDEO_MEMORY[x_pos] = 'X';
-            }
-            last_global = global;
-            if(last_reset != reset){
-                // x_pos = 0;
-                char *val = getSave("test");
-                
-                x_pos = atoi(val);
-                last_reset = reset;
-            }
-            MEDIUM_CONTROL[0] = MediumControl((global / 10) % 2, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
-        }
-    }
+    drawSprites(512, 288, 0, 0, 3, 0, 0);
+
+    drawSprites(50, 100, 1, 0, 1, 0, 0);
+    drawSprites(100, 100, 1, 1, 1, 0, 1);
+    drawSprites(150, 100, 1, 8, 1, 0, 2);
+    drawSprites(50, 150, 1, 9, 1, 0, 3);
+    drawSprites(100, 150, 1, 16, 1, 0, 4);
+    drawSprites(150, 150, 1, 63, 1, 0, 5);
+
+    drawSprites(415, 270, 1, 0, 0, 0, 0);
+    drawSprites(450, 270, 1, 1, 0, 0, 1);
+    drawSprites(500, 270, 1, 19, 0, 0, 2);
+
+    drawSprites(40, 220, 1, 16*0, 2, 0, 0);
+    drawSprites(60, 220, 1, 16*1, 2, 0, 1);
+    drawSprites(80, 220, 1, 16*2, 2, 0, 2);
+    drawSprites(100, 220, 1, 16*3, 2, 0, 3);
+    drawSprites(120, 220, 1, 16*4, 2, 0, 4);
+    drawSprites(140, 220, 1, 16*5, 2, 0, 5);
+    drawSprites(160, 220, 1, 16*6, 2, 0, 6);
+
     return 0;
-}
-
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
-    return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
 }

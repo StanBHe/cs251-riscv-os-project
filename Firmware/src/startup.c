@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "./syscalls/sprites.h"
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -178,6 +179,18 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(13 == call){
         return os_get_save(arg0);
+    }
+    else if(call == 9) {
+        loadSprites((uint32_t*)arg0);
+    }
+    else if(call == 10) {
+        uint16_t x = (uint16_t)(arg0>>16);
+        uint16_t y = (uint16_t)(arg0&0xFFFF);
+        uint16_t z = (uint16_t)(arg1>>16);
+        uint16_t index = (uint16_t)(arg1&0xFFFF);
+        uint16_t type = (uint16_t)(arg2>>16);
+        uint16_t palette = (uint16_t)(arg2&0xFFFF);
+        drawSprites(x, y, z, index, type, palette, (uint16_t)arg3);
     }
     return -1;
 
