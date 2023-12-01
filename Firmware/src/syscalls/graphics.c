@@ -28,6 +28,7 @@ uint32_t TOTAL_PIXELS_B = 512 * 288 * 4;
 
 void loadSprites(uint32_t spriteData[]) {
 
+    clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
     drawText(1, 1, "Loading Sprites...");
 
     for(int i = 0; i < TOTAL_COLORS; i++) {
@@ -49,6 +50,8 @@ void loadSprites(uint32_t spriteData[]) {
     for(int i = 0; i < TOTAL_PIXELS_B; i++) { 
         B_DATA[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + i];
     }
+
+    clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
 };
 
 int8_t drawSprite(uint16_t x, uint16_t y, uint16_t z, uint16_t index, uint16_t type, uint16_t palette, uint32_t controlStructure) {
@@ -74,7 +77,7 @@ int8_t drawSprite(uint16_t x, uint16_t y, uint16_t z, uint16_t index, uint16_t t
     return 0;
 }
 
-uint8_t clearSprite(uint16_t type, uint32_t controlStructure) {
+int8_t clearSprite(uint16_t type, uint32_t controlStructure) {
     volatile uint32_t *control;
     if(type == 0) {
         control = L_CONTROL;
@@ -96,7 +99,7 @@ uint8_t clearSprite(uint16_t type, uint32_t controlStructure) {
 }
 
 
-int8_t drawText(uint16_t x, uint16_t y, char* text) {
+int32_t drawText(uint16_t x, uint16_t y, char* text) {
     uint32_t shift = (y * TEXT_WIDTH) + x;
     uint32_t strLen = strlen(text);
 
@@ -111,11 +114,15 @@ int8_t drawText(uint16_t x, uint16_t y, char* text) {
     return shift;
 }
 
-int8_t clearText(uint32_t textPos) {
+int8_t clearText(int32_t textPos) {
 
-    uint32_t pos = textPos;
+    if(textPos < 0) {
+        return -1;
+    }
 
-    while(VIDEO_MEMORY[pos] != '\0' && pos < TEXT_WIDTH * TEXT_HEIGHT) {
+    int32_t pos = textPos;
+
+    while(VIDEO_MEMORY[pos] != '\0' && pos < (TEXT_WIDTH * TEXT_HEIGHT)) {
         VIDEO_MEMORY[pos] = '\0';
         pos++;
     }
@@ -123,7 +130,7 @@ int8_t clearText(uint32_t textPos) {
     return 0;
 }
 
-int8_t clearTextPos(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+int8_t clearTextArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 
     uint16_t right = x + w;
     if(right > TEXT_WIDTH) {

@@ -49,16 +49,16 @@ int main() {
     drawSprite(140, 220, 1, 16*5, 2, 0, 5);
     drawSprite(160, 220, 1, 16*6, 2, 0, 6);
 
-    clearTextPos(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
+    clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
     setGraphicsMode(1);
 
     int last_reset = GetReset();
     int reset;
     int x_pos = 150;
     int y_pos = 100;
-    int last_global = 42;
-    int textInd = 0;
-    uint32_t global = 42;
+    int last_global = 0;
+    int32_t textInd = 0;
+    uint32_t global = 0;
     uint32_t controller_status = 0;
 
     while (1) {
@@ -87,12 +87,6 @@ int main() {
                         y_pos++;
                     }
                 }
-
-                drawSprite(x_pos, y_pos, 1, 8, 1, 0, 2);
-                clearTextPos(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
-                // clearText(textInd);
-                textInd = drawText(((x_pos * TEXT_WIDTH) / SCREEN_WIDTH), ((y_pos * TEXT_HEIGHT) / SCREEN_HEIGHT), "Text");
-                
                 if(controller_status & 0x10){
                     setGraphicsMode(0);
                 }
@@ -101,10 +95,17 @@ int main() {
                 }
                 if(controller_status & 0x40){
                     drawSprite(512, 288, 0, 0, 3, 0, 0);
+                    drawText(((x_pos * TEXT_WIDTH) / SCREEN_WIDTH), (((y_pos * TEXT_HEIGHT) / SCREEN_HEIGHT) + 1), "Bottom Text");
                 }
                 if(controller_status & 0x80){
                     clearSprite(3, 0);
+                    clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
                 }
+
+                drawSprite(x_pos, y_pos, 1, 8, 1, 0, 2);
+                clearText(textInd);
+                textInd = drawText(((x_pos * TEXT_WIDTH) / SCREEN_WIDTH), ((y_pos * TEXT_HEIGHT) / SCREEN_HEIGHT), "Top Text");
+
             }
             last_global = global;
             if(last_reset != reset){

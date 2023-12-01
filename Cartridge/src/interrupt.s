@@ -5,7 +5,7 @@
 .global malloc, realloc, free
 .global generate_event, trigger_event
 .global saveGame, getSaves, getSave
-.global loadSprites, drawSpritesHelper, drawText, clearText, clearTextPos, setGraphicsMode, clearSprite
+.global loadSprites, drawSpritesHelper, drawText, clearText, clearTextArea, setGraphicsMode, clearSprite
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -102,7 +102,7 @@ drawText:
 clearText:
     li a5, 23
     ecall
-clearTextPos:
+clearTextArea:
     li a5, 24
     ecall
 setGraphicsMode:
