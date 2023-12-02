@@ -209,13 +209,19 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(3 == call){
         return reset;
-    }else if(11 == call){
-        return os_save_game(arg0,arg1);
-    }else if(12 == call){
-        return os_get_all_saves();
     }
-    else if(13 == call){
-        return os_get_save(arg0);
+    else if(4 == call){
+        return 0;  // generate event
+    }
+
+    else if(6 == call) {
+        return (void*)malloc((size_t)arg0);
+    }
+    else if(7 == call) {
+        return (void*)realloc((void*)arg0, (size_t)arg1);
+    }
+    else if(8 == call) {
+        free((void*)arg0);
     }
     else if(call == 9) {
         loadSprites((uint32_t*)arg0);
@@ -229,10 +235,15 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         uint16_t palette = (uint16_t)(arg2&0xFFFF);
         return drawSprite(x, y, z, index, type, palette, (uint16_t)arg3);
     }
-    else if(4 == call){
-        return 0;  // generate event
+    else if(11 == call){
+        return os_save_game(arg0,arg1);
     }
-
+    else if(12 == call){
+        return os_get_all_saves();
+    }
+    else if(13 == call){
+        return os_get_save(arg0);
+    }
 
     else if(16 == call){
         return 0; // kill;

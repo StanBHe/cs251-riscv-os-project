@@ -13,7 +13,10 @@ volatile uint32_t *PALETTE = (volatile uint32_t *)(0x500F0000);
 volatile uint8_t *L_DATA = (volatile uint8_t *)(0x50090000);
 volatile uint8_t *M_DATA = (volatile uint8_t *)(0x500D0000);
 volatile uint8_t *S_DATA = (volatile uint8_t *)(0x500E0000);
-volatile uint8_t *B_DATA = (volatile uint8_t *)(0x50000000);
+volatile uint8_t *B_DATA1 = (volatile uint8_t *)(0x50000000);
+volatile uint8_t *B_DATA2 = (volatile uint8_t *)(0x50024000);
+volatile uint8_t *B_DATA3 = (volatile uint8_t *)(0x50048000);
+volatile uint8_t *B_DATA4 = (volatile uint8_t *)(0x5006C000);
 
 volatile uint32_t *L_CONTROL = (volatile uint32_t *)(0x500F5B00);
 volatile uint32_t *M_CONTROL = (volatile uint32_t *)(0x500F5F00);
@@ -24,7 +27,7 @@ uint32_t TOTAL_COLORS = 256 * 4 * 4;
 uint32_t TOTAL_PIXELS_L = 64 * 64 * 64;
 uint32_t TOTAL_PIXELS_M = 32 * 32 * 64;
 uint32_t TOTAL_PIXELS_S = 16 * 16 * 256;
-uint32_t TOTAL_PIXELS_B = 512 * 288 * 4;
+uint32_t TOTAL_PIXELS_B = 512 * 288;
 
 void loadSprites(uint32_t spriteData[]) {
 
@@ -48,7 +51,19 @@ void loadSprites(uint32_t spriteData[]) {
     }
 
     for(int i = 0; i < TOTAL_PIXELS_B; i++) { 
-        B_DATA[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + i];
+        B_DATA1[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + (TOTAL_PIXELS_B * 0) + i];
+    }
+
+    for(int i = 0; i < TOTAL_PIXELS_B; i++) { 
+        B_DATA2[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + (TOTAL_PIXELS_B * 1) + i];
+    }
+
+    for(int i = 0; i < TOTAL_PIXELS_B; i++) { 
+        B_DATA3[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + (TOTAL_PIXELS_B * 2) + i];
+    }
+
+    for(int i = 0; i < TOTAL_PIXELS_B; i++) { 
+        B_DATA4[i] = (uint8_t)spriteData[TOTAL_COLORS + TOTAL_PIXELS_L + TOTAL_PIXELS_M + TOTAL_PIXELS_S + (TOTAL_PIXELS_B * 3) + i];
     }
 
     clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
@@ -56,23 +71,31 @@ void loadSprites(uint32_t spriteData[]) {
 
 int8_t drawSprite(uint16_t x, uint16_t y, uint16_t z, uint16_t index, uint16_t type, uint16_t palette, uint32_t controlStructure) {
     volatile uint32_t *control;
+    uint32_t size = 0;
     if(type == 0) {
         control = L_CONTROL;
+        size = 64;
     }
     else if(type == 1) {
         control = M_CONTROL;
+        size = 32;
     }
     else if(type == 2) {
         control = S_CONTROL;
+        size = 16;
     } 
     else if(type == 3) {
         control = B_CONTROL;
+        control[controlStructure] = ((((uint32_t)index)<<29) | (((uint32_t)z)<<22) | 
+                                    (((uint32_t)(y+SCREEN_HEIGHT))<<12) | (((uint32_t)(x+SCREEN_WIDTH))<<2) | (palette & 0x3));
+        return 0;
     } 
     else {
         return -1;
     }
 
-    control[controlStructure] = (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y)<<12) | (((uint32_t)x)<<2) | (palette & 0x3);
+    control[controlStructure] = (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | 
+                                (((uint32_t)(y+size))<<12) | (((uint32_t)(x+size))<<2) | (palette & 0x3);
 
     return 0;
 }

@@ -1,7 +1,7 @@
 .section .text, "ax"
 
-.global _interrupt_handler, GetTicks, GetController, GetReset
-.global fork, exec, kill, wait, get_ppid, getTicks
+.global _interrupt_handler, GetTicks, GetController, GetReset, getTicks
+.global fork, exec, kill, wait, get_ppid
 .global malloc, realloc, free
 .global generate_event, trigger_event
 .global saveGame, getSaves, getSave

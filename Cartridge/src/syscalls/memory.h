@@ -7,6 +7,6 @@ void* malloc(size_t size);
 
 void* realloc(void* pointer, size_t size);
 
-int free(void* pointer);
+void free(void* pointer);
 
 #endif 
