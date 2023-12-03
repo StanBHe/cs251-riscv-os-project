@@ -14,6 +14,7 @@ SRC_DIR = ./src
 OBJ_DIR = ./obj
 BIN_DIR = ./bin
 SYS_DIR = ./src/syscalls
+GAM_DIR = ./src/game
 
 DEBUG_MODE=TRUE
 
@@ -50,6 +51,12 @@ $(OBJ_DIR)/%.o: $(SYS_DIR)/%.s
 
 $(OBJ_DIR)/%.o: $(SYS_DIR)/%.c
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
+
+# $(OBJ_DIR)/%.o: $(GAM_DIR)/%.s
+# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
+
+# $(OBJ_DIR)/%.o: $(GAM_DIR)/%.c
+# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
