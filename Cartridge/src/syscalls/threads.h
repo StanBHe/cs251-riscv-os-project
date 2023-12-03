@@ -6,6 +6,7 @@ typedef void (*TThreadEntry)(void *);
 typedef uint32_t *TThreadContext;
 
 TThreadContext createThread(TThreadEntry entry, void *param);
+TThreadContext sys_createThread(uint32_t *OtherThreadStack, TThreadEntry entry, void *param);
 
 void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 

@@ -215,9 +215,7 @@ uint32_t os_save_game(uint32_t arg0, uint32_t arg1){
     return -1;
 }
 
-uint32_t create_TCB(TThreadEntry entry, void *param){
-    uint32_t OtherThreadStack[128];
-
+TThreadContext create_TCB(uint32_t *OtherThreadStack, TThreadEntry entry, void *param){
     TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
     new_TCB->thread_id = InitThread(OtherThreadStack + 128, entry, param);
     new_TCB->thread_state = INIT;
@@ -225,7 +223,7 @@ uint32_t create_TCB(TThreadEntry entry, void *param){
     thread_control_sys[num_threads] = new_TCB;
     num_threads += 1;
 
-    return (uint32_t)new_TCB->thread_id;
+    return (TThreadContext)new_TCB->thread_id;
 }
 
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
@@ -261,7 +259,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return 0;  // generate event
     }
     else if(14 == call){
-        return create_TCB((TThreadEntry) arg0, (void *)arg1);
+        return (uint32_t)create_TCB((uint32_t*) arg0, (TThreadEntry)arg1, (void*)arg2);
     }
 
     else if(16 == call){
