@@ -16,9 +16,9 @@ int main() {
     int b = 12;
     int last_global = 42;
     int x_pos = 12;
-    // char *Buffer = malloc(32);
-    // strcpy(Buffer,"OS STARTED");
-    // strcpy((char *)VIDEO_MEMORY,Buffer);
+    char *Buffer = malloc(32);
+    strcpy(Buffer,"OS STARTED");
+    strcpy((char *)VIDEO_MEMORY,Buffer);
 
     while (1){
         if(*CartridgeStatus & 0x1){
@@ -26,6 +26,7 @@ int main() {
             Fun();
         }
     }
+
 
     return 0;
 }

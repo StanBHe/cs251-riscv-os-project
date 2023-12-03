@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, GetReset, generate_event, trigger_event, malloc, realloc, free, loadSprites, drawSpritesHelper, saveGame, getSaves, getSave, fork, exec, kill, wait, get_ppid, getTicks
+.global _interrupt_handler, GetTicks, GetController, GetReset, generate_event, trigger_event, malloc, realloc, free, loadSprites, drawSpritesHelper, saveGame, getSaves, getSave, createThread, exec, kill, wait, get_ppid, getTicks, SwitchThread
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -66,9 +66,9 @@ getSaves:
 getSave:
     li a5, 13
     ecall
-#fork:
-#    li a5, 14
-#    ecall
+createThread:
+    li a5, 14
+    ecall
 exec:
     li a5, 15
     ecall
@@ -90,3 +90,4 @@ InitThread:
 SwitchThread:
     li a5, 21
     ecall
+
