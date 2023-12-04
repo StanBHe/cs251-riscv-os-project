@@ -112,26 +112,3 @@ int main() {
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
     return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
 }
-
-extern char _heap_base[];
-extern char _stack[];
-
-char *_sbrk(int numbytes){
-  static char *heap_ptr = NULL;
-  char *base;
-
-  if (heap_ptr == NULL) {
-    heap_ptr = (char *)&_heap_base;
-  }
-
-  if((heap_ptr + numbytes) <=_stack) {
-    base = heap_ptr;
-    heap_ptr += numbytes;
-    return (base);
-  }
-  else {
-    //errno = ENOMEM;
-    return NULL;
-  }
-
-}
