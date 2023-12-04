@@ -2,7 +2,6 @@
 
 .global _interrupt_handler, GetTicks, GetController, GetReset, getTicks
 .global fork, exec, kill, wait, get_ppid
-.global malloc, realloc, free
 .global generate_event, trigger_event
 .global saveGame, getSaves, getSave
 .global loadSprites, drawSpritesHelper, drawText, clearText, clearTextArea, setGraphicsMode, clearSprite
@@ -47,15 +46,6 @@ generate_event:
     ecall
 trigger_event:
     li a5, 5
-    ecall
-malloc:
-    li a5, 6
-    ecall
-realloc:
-    li a5, 7
-    ecall
-free:
-    li a5, 8
     ecall
 loadSprites:
     li a5, 9

@@ -34,7 +34,7 @@ char *_sbrk(int numbytes){
   char *base;
 
   if (heap_ptr == NULL) {
-    heap_ptr = (char *)&(_heap_base[1]);
+    heap_ptr = (char *)&_heap_base;
   }
 
   if((heap_ptr + numbytes) <=_stack) {

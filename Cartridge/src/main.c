@@ -1,10 +1,9 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include "./syscalls/input.h"
-#include "./syscalls/state.h"
 #include "./spriteData.h"
 #include "./syscalls/graphics.h"
-#include "./syscalls/memory.h"
 
 uint32_t SCREEN_WIDTH = 512;
 uint32_t SCREEN_HEIGHT = 288;
@@ -130,7 +129,7 @@ int main() {
     for(int i = 0; i < GRID_HEIGHT; i++) {
         grid[i] = (int*)malloc(sizeof(int) * GRID_WIDTH);
         for(int k = 0; k < GRID_WIDTH; k++) {
-            grid[i][k] = 0;
+            grid[i][k] = -1;
         }
     }
 
@@ -317,7 +316,7 @@ int isValid(int x, int y, int type, int rot, int** grid) {
                     freebMap(bMap);
                     return 0;
                 }
-                if(grid[i+y][k+x] == 2) {
+                if(grid[i+y][k+x] != -1) {
                     freebMap(bMap);
                     return 0;
                 }
@@ -334,7 +333,7 @@ void placeBlock(int x, int y, int type, int rot, int** grid) {
     for(int i = 0; i < 4; i++) {
         for(int k = 0; k < 4; k++) {
             if(bMap[i][k] == 1) {
-                grid[i+y][k+x] = 2;
+                grid[i+y][k+x] = type;
             }
         }
     }
@@ -390,10 +389,10 @@ int printGrid(int** grid) {
         lineText[GRID_WIDTH + 1] = 'X';
         lineText[GRID_WIDTH + 2] = '\0';
         for(int k = 0; k < GRID_WIDTH; k++) { 
-            if(grid[i][k] == 0) {
-                lineText[k+1] = '0';
+            if(grid[i][k] == -1) {
+                lineText[k+1] = ' ';
             } else {
-                lineText[k+1] = '2';
+                lineText[k+1] = (char)(grid[i][k] + 48);
             }
         }
         drawText(25, 10 + i, lineText);
@@ -406,9 +405,9 @@ int printGrid(int** grid) {
 void drawGrid(int** grid) {
     for(int i = 0; i < GRID_HEIGHT; i++) {
         for(int k = 0; k < GRID_WIDTH; k++) {
-            if(grid[i][k] != 0) {
+            if(grid[i][k] != -1) {
                 drawSprite(GRID_OFFSET_X + (k * BLOCK_SIZE), GRID_OFFSET_Y + (i * BLOCK_SIZE), 2, 
-                           grid[i][k] - 1, 2, 0, i + (k * GRID_HEIGHT));
+                           grid[i][k], 2, 0, i + (k * GRID_HEIGHT));
             }
         }
     }
