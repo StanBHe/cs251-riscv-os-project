@@ -76,9 +76,10 @@ void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
 
 TThreadContext MainThread;
 
+int currentThread;
+
 uint32_t time_slice;
 uint32_t thread_runtime;
-
 
 void init(void){
     uint8_t *Source = _erodata;
@@ -108,6 +109,7 @@ void init(void){
 
     thread_control_sys[num_threads] = main_thread_TCB;
     num_threads += 1;
+    currentThread = 0; 
 
     time_slice = 10;
     thread_runtime = 0;
@@ -125,8 +127,15 @@ void c_interrupt_handler(uint32_t mcause){
         thread_runtime += 1;
         if (thread_runtime >= time_slice) {
             thread_runtime = 0;
-
-            // switch thread round robin ___
+            // if(num_threads > 1){
+            //     if(currentThread ==0){
+            //         currentThread = 1;
+            //         SwitchThread(&thread_control_sys[0]->thread_id,thread_control_sys[1]->thread_id);
+            //     }else{
+            //         currentThread = 0;
+            //         SwitchThread(&thread_control_sys[1]->thread_id,thread_control_sys[0]->thread_id);
+            //     }
+            // }
         }
     }
     else if (mcause == 2147483659){
@@ -271,8 +280,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(18 == call){
         return 0; // get_ppid;
     }
-
-
     else if(20 == call){
         return 0;
         // return create_TCB((TThreadEntry *) arg0, (void *)arg1, (void *)arg2);

@@ -45,6 +45,10 @@ void otherThreadFunc() {
             }
         }
     }
+    while(1){
+        SwitchThread(&other_thread, MainThread);
+    }
+    //return a + b;
 }
 
 int main() {
@@ -58,6 +62,27 @@ int main() {
     drawText(2, 2, "In Cartridge");
 
     other_thread = createThread(otherThreadFunc, NULL);
+    // Fill out sprite data
+    for(int y = 0; y < 32; y++){
+        for(int x = 0; x < 32; x++){    
+            MEDIUM_DATA[y*32+x] = 1;
+        }
+    }
+    MEDIUM_PALETTE[1] = 0xFFFF0000; // A R G B
+    MEDIUM_PALETTE[257] = 0xFF00FF00;
+    //MEDIUM_PALETTE[513] = 0xFF0000FF;
+    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
+    *MODE_REGISTER = 1;
+    int last_reset = GetReset();
+    int reset;
+
+    //uint32_t *OtherThreadStack = (uint32_t*) malloc(128 * sizeof(uint32_t));
+    //uint32_t OtherThreadStack[128];
+    //other_thread = sys_createThread(OtherThreadStack, blank_func, NULL);
+
+    other_thread = createThread(/*(void*)*/blank_func, NULL);
+
+    //MainThread = (TThreadContext) malloc(128 * sizeof(uint32_t));
 
     while (1) {
         drawText(2, 4, "Thread 1");
@@ -73,6 +98,10 @@ int main() {
             }
             last_global = global;
             if(last_reset != reset){
+                // createThread((void*)blank_func, NULL);
+                SwitchThread(&MainThread, other_thread);
+
+                x_pos = 0;
                 last_reset = reset;
             }
         }

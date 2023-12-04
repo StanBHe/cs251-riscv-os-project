@@ -14,7 +14,6 @@ MEMORY
     FLASH (rx)  : ORIGIN = 0x20000000, LENGTH = 16M
     /* riscv-console virt machine RAM */
     RAM (rwx)   : ORIGIN = 0x70800000, LENGTH = 8M
-    
 }
 ENTRY(_start)
 SEARCH_DIR("/opt/riscv32/riscv32-unknown-elf/lib");

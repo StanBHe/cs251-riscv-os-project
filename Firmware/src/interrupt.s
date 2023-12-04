@@ -36,23 +36,30 @@ _interrupt_handler:
     lw	    a4,4(sp)
     lw	    a5,0(sp)
     addi    sp,sp,44
-    mret
+    mret    
 
 _system_call:
     csrr    ra,mscratch
-    csrw    mepc,ra
+    addi	sp,sp,-4
+    sw      ra,0(sp)
     csrw    mscratch,gp
     .option push
     .option norelax
     la gp, __global_pointer$
     .option pop
     call    c_system_call
+    lw      ra,0(sp)
+    addi    sp,sp,4
+    csrw    mepc,ra
     csrr    gp,mscratch
     mret
 
 InitThread:
-    addi    a0,a0,-52
-    sw	    a1,48(a0)
+    csrr    gp, mscratch
+
+    addi    a0,a0,-56
+    sw	    a1, 52(a0)
+    sw	    gp, 48(a0)
     sw	    zero,44(a0)
     sw	    zero,40(a0)
     sw	    zero,36(a0)
@@ -65,11 +72,17 @@ InitThread:
     sw	    zero,8(a0)
     sw	    zero,4(a0)
     sw	    zero,0(a0)
+
+    la gp, __global_pointer$
+
     ret
     
 SwitchThread:
-    addi	sp,sp,-52
-    sw	    ra,48(sp)
+    csrr    gp, mscratch
+
+    addi	sp,sp,-56
+    sw	    ra,52(sp)
+    sw	    gp,48(sp)
     sw	    tp,44(sp)
     sw	    t0,40(sp)
     sw	    t1,36(sp)
@@ -86,7 +99,8 @@ SwitchThread:
     sw      sp,0(a0)
     mv      sp,a1
 
-    lw	    ra,48(sp)
+    lw	    ra,52(sp)
+    lw      gp,48(sp)
     lw	    tp,44(sp)
     lw	    t0,40(sp)
     lw	    t1,36(sp)
@@ -99,6 +113,6 @@ SwitchThread:
     lw	    a3,8(sp)
     lw	    a4,4(sp)
     lw	    a5,0(sp)
-    addi	sp,sp,52
+    addi	sp,sp,56
     csrsi mstatus, 0x8
     ret
