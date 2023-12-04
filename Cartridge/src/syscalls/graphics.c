@@ -1,4 +1,4 @@
-#include "./sprites.h"
+#include "./graphics.h"
 
 uint8_t drawSprites(uint16_t x, uint16_t y, uint16_t z, uint16_t index, uint16_t type, uint16_t palette, uint32_t controlStructure) {
 

@@ -1,5 +1,6 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, GetReset, generate_event, trigger_event, loadSprites, drawSpritesHelper, saveGame, getSaves, getSave, sys_createThread, exec, kill, wait, get_ppid, getTicks, SwitchThread
+.global _interrupt_handler, GetTicks, GetController, GetReset, generate_event, trigger_event, saveGame, getSaves, getSave, sys_createThread, exec, kill, wait, get_ppid, getTicks, SwitchThread
+.global loadSprites, drawSpritesHelper, drawText, clearText, clearTextArea, setGraphicsMode, clearSprite
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -81,4 +82,18 @@ InitThread:
 SwitchThread:
     li a5, 21
     ecall
-
+drawText:
+    li a5, 22
+    ecall
+clearText:
+    li a5, 23
+    ecall
+clearTextArea:
+    li a5, 24
+    ecall
+setGraphicsMode:
+    li a5, 25
+    ecall
+clearSprite:
+    li a5, 26
+    ecall

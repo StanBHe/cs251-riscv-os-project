@@ -38,7 +38,7 @@ TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/interrupt.o          \
                 $(OBJ_DIR)/startup.o			\
 				$(OBJ_DIR)/events.o				\
-				$(OBJ_DIR)/sprites.o			\
+				$(OBJ_DIR)/graphics.o			\
 				$(OBJ_DIR)/state.o				\
 				$(OBJ_DIR)/threads.o			\
 				$(OBJ_DIR)/time.o				\
