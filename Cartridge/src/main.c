@@ -23,7 +23,7 @@ int GRID_OFFSET_Y = 80;
 int GRID_WIDTH = 10;
 int GRID_HEIGHT = 24;
 
-int TIME_STEP = 100;
+int TIME_STEP = 10;
 
 // unrotated block sizes width, height
 int BLOCK_SIZES[7][2] = {{1,4}, {2,3}, {2,3}, {3,2}, {3,2}, {3,2}, {2,2}};
@@ -89,7 +89,7 @@ void drawGrid(int** grid);
 
 void deleteGridRows(int** grid);
 
-void printCount(int count);
+void printCount(int y, int count);
 
 /*
     drawSprites:
@@ -104,80 +104,35 @@ void printCount(int count);
     Block types:
 */
 
-void otherThreadFunc() {
-    int last_global = 42;
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
-    int last_reset = GetReset();
-    int reset;
-    int total = 0;
-
-    drawText(2, 6, "Thread 2");
-    while (1) {
-        reset = GetReset();
-        global = GetTicks();
-        if(global != last_global) {
-            drawText(2, 4, "Thread 2");
-            controller_status = GetController();
-            if(controller_status){
-                if(controller_status & 0x2){
-                }
-                if(controller_status & 0x8){
-                    drawText(2, 12, "attempt switch from 2");
-                    SwitchThread(other_thread, &MainThread);
-                }
-            }
-
-            last_global = global;
-            if(last_reset != reset){
-                last_reset = reset;
-            }
-        }
-    }
-    //return a + b;
-}
-
 int main() {
-    int last_global = 42;
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
-
-    int last_reset = GetReset();
-    int reset;
-
     loadSprites(SPRITE_DATA);
     clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
     setGraphicsMode(1);
     drawSprite(0, 0, 0, 0, 3, 0, 0);
 
-    int last_reset = GetReset();
-    int reset;
-    int last_global = 0;
+    // int last_reset = GetReset();
+    // int reset;
+    // int last_global = 0;
 
-    uint32_t global = 0;
-    uint32_t controller_status = 0;
+    // uint32_t global = 0;
+    // uint32_t controller_status = 0;
 
-    // game var
-    int menuloop = 1;
-    int gameloop = 0;
-    int scoreloop = 0;
+    // // game var
+    // int menuloop = 1;
+    // int gameloop = 0;
+    // int scoreloop = 0;
 
-    int bType = 0;
-    int bRot = 0;
-    int bX = 0;
-    int bY = 0;
+    // int bType = 0;
+    // int bRot = 0;
+    // int bX = 0;
+    // int bY = 0;
 
-    int pressedLR = 0;
-    int pressedD = 0;
-    int pressedRot = 0;
-    int diff = 0;
+    // int pressedLR = 0;
+    // int pressedD = 0;
+    // int pressedRot = 0;
+    // int diff = 0;
 
-    int blockCount = 0;
-
-    for(int i = 0; i < 4000; i++) {
-        int* test = (int*)malloc(sizeof(int) * 100);
-        free(test);
-    }
+    // int blockCount = 0;
 
     int** grid = (int**)malloc(sizeof(int*) * GRID_HEIGHT);
     for(int i = 0; i < GRID_HEIGHT; i++) {
@@ -187,127 +142,156 @@ int main() {
         }
     }
 
-    while (1) {
-        reset = GetReset();
-        global= GetTicks();
+    int count = 0;
 
-        if(menuloop) {
-            if(global != last_global){
-                controller_status = GetController();
-                if(controller_status){
-                    if(controller_status & 0x10){
-                        gameloop = 1;
-                        menuloop = 0;
-                        drawSprite(0, 0, 0, 1, 3, 0, 0);
-                    }
+    // this breaks the game somehow?
+    // at 57+ unfreed mallocs (less than 56 is ok for some reason)
+    for(int k = 0; k < 100; k++) {
+        int* testMem = (int*)malloc(sizeof(int));
+        for(int i = 0; i < GRID_HEIGHT; i++) {
+            for(int h = 0; h < GRID_WIDTH; h++) {
+                if(grid[i][h] != -1 && count == 0) {
+                    int* addr = &grid[i][h];
+                    printCount(20, i);
+                    printCount(22, h);
+                    count = k;
                 }
             }
-        }
-
-        if(gameloop) {
-            if(global != last_global){
-                diff = global - last_global;
-                controller_status = GetController();
-                if(controller_status & 0x1) {
-                    if(isValid(bX-1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
-                        bX--;
-                    }
-                    if(pressedLR >= TIME_STEP) {
-                        pressedLR -= TIME_STEP;
-                    }
-                    pressedLR += diff;
-                }
-                else if(controller_status & 0x8) {
-                    if(isValid(bX+1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
-                        bX++;
-                    }
-                    if(pressedLR >= TIME_STEP) {
-                        pressedLR -= TIME_STEP;
-                    }
-                    pressedLR += diff;
-                }
-                else {
-                    pressedLR = 0;
-                }
-                if(controller_status & 0x2){
-                }
-                if(controller_status & 0x4){
-                    if(pressedD==0 || pressedD >= TIME_STEP) {
-                        if(isValid(bX, bY+1, bType, bRot, grid)) {
-                            bY++;
-                        }
-                        else {
-                            // placeBlock(bX, bY, bType, bRot, grid);
-                            bType = global % 7;
-                            bRot = 0;
-                            bX = 0;
-                            bY = 0;
-                            blockCount++;
-                            printCount(blockCount);
-                        }
-                    }
-                    if(pressedD >= TIME_STEP) {
-                        pressedD -= TIME_STEP;
-                    }
-                    pressedD += diff;
-                }
-                else {
-                    pressedD = 0;
-                }
-                if(controller_status & 0x10){
-                    if(pressedRot == 0) {
-                        int offset = 0;
-                        offset = getRotateOffset(bX, bY, bType, bRot);
-                        bX += offset;
-                        bRot = (bRot + 3) % BLOCK_ROT_MODS[bType];
-                        if(!isValid(bX, bY, bType, bRot, grid)) {
-                            bX -= offset;
-                            bRot = (bRot + 1) % BLOCK_ROT_MODS[bType];
-                        }
-                        pressedRot = 1;
-                    }
-                }
-                else if(controller_status & 0x20){
-                    if(pressedRot == 0) {
-                        int offset = 0;
-                        offset = getRotateOffset(bX, bY, bType, bRot);
-                        bX += offset;
-                        bRot = (bRot + 1) % BLOCK_ROT_MODS[bType];
-                        if(!isValid(bX, bY, bType, bRot, grid)) {
-                            bX -= offset;
-                            bRot = (bRot + 3) % BLOCK_ROT_MODS[bType];
-                        }
-                        pressedRot = 1;
-                    }
-                }
-                else {
-                    pressedRot = 0;
-                }
-                if(controller_status & 0x40){
-                    setGraphicsMode(0);
-                }
-                if(controller_status & 0x80){
-                    setGraphicsMode(1);
-                }
-            }
-            drawBlock(bX, bY, bType, bRot, 0);
-
-        }
-
-        if(global % 10 == 0) {
-            printGrid(grid);
-            drawGrid(grid);
-            deleteGridRows(grid);
-        }
-
-        last_global = global;
-        if(last_reset != reset){
-            last_reset = reset;
-            gameloop = 0;
-            menuloop = 1;
-            drawSprite(512, 288, 0, 0, 3, 0, 0);
         }
     }
+
+    setGraphicsMode(0);
+
+    // grid should be empty if working as intended
+    printGrid(grid);
+    printCount(24, count);
+
+    while (1) {
+    }
+
+    return 0;
+
+    // while (1) {
+    //     reset = GetReset();
+    //     global= GetTicks();
+
+    //     if(menuloop) {
+    //         if(global != last_global){
+    //             controller_status = GetController();
+    //             if(controller_status){
+    //                 if(controller_status & 0x10){
+    //                     gameloop = 1;
+    //                     menuloop = 0;
+    //                     drawSprite(0, 0, 0, 1, 3, 0, 0);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if(gameloop) {
+    //         if(global != last_global){
+    //             diff = global - last_global;
+    //             controller_status = GetController();
+    //             if(controller_status & 0x1) {
+    //                 if(isValid(bX-1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
+    //                     bX--;
+    //                 }
+    //                 if(pressedLR >= TIME_STEP) {
+    //                     pressedLR -= TIME_STEP;
+    //                 }
+    //                 pressedLR += diff;
+    //             }
+    //             else if(controller_status & 0x8) {
+    //                 if(isValid(bX+1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
+    //                     bX++;
+    //                 }
+    //                 if(pressedLR >= TIME_STEP) {
+    //                     pressedLR -= TIME_STEP;
+    //                 }
+    //                 pressedLR += diff;
+    //             }
+    //             else {
+    //                 pressedLR = 0;
+    //             }
+    //             if(controller_status & 0x2){
+    //             }
+    //             if(controller_status & 0x4){
+    //                 if(pressedD==0 || pressedD >= TIME_STEP) {
+    //                     if(isValid(bX, bY+1, bType, bRot, grid)) {
+    //                         bY++;
+    //                     }
+    //                     else {
+    //                         // placeBlock(bX, bY, bType, bRot, grid);
+    //                         bType = global % 7;
+    //                         bRot = 0;
+    //                         bX = 0;
+    //                         bY = 0;
+    //                         blockCount++;
+    //                         printCount(blockCount);
+    //                     }
+    //                 }
+    //                 if(pressedD >= TIME_STEP) {
+    //                     pressedD -= TIME_STEP;
+    //                 }
+    //                 pressedD += diff;
+    //             }
+    //             else {
+    //                 pressedD = 0;
+    //             }
+    //             if(controller_status & 0x10){
+    //                 if(pressedRot == 0) {
+    //                     int offset = 0;
+    //                     offset = getRotateOffset(bX, bY, bType, bRot);
+    //                     bX += offset;
+    //                     bRot = (bRot + 3) % BLOCK_ROT_MODS[bType];
+    //                     if(!isValid(bX, bY, bType, bRot, grid)) {
+    //                         bX -= offset;
+    //                         bRot = (bRot + 1) % BLOCK_ROT_MODS[bType];
+    //                     }
+    //                     pressedRot = 1;
+    //                 }
+    //             }
+    //             else if(controller_status & 0x20){
+    //                 if(pressedRot == 0) {
+    //                     int offset = 0;
+    //                     offset = getRotateOffset(bX, bY, bType, bRot);
+    //                     bX += offset;
+    //                     bRot = (bRot + 1) % BLOCK_ROT_MODS[bType];
+    //                     if(!isValid(bX, bY, bType, bRot, grid)) {
+    //                         bX -= offset;
+    //                         bRot = (bRot + 3) % BLOCK_ROT_MODS[bType];
+    //                     }
+    //                     pressedRot = 1;
+    //                 }
+    //             }
+    //             else {
+    //                 pressedRot = 0;
+    //             }
+    //             if(controller_status & 0x40){
+    //                 setGraphicsMode(0);
+    //             }
+    //             if(controller_status & 0x80){
+    //                 setGraphicsMode(1);
+    //             }
+    //         }
+    //         drawBlock(bX, bY, bType, bRot, 0);
+
+    //     }
+
+    //     if(global % 10 == 0) {
+    //         printGrid(grid);
+    //         drawGrid(grid);
+    //         deleteGridRows(grid);
+    //     }
+
+    //     last_global = global;
+    //     if(last_reset != reset){
+    //         last_reset = reset;
+    //         gameloop = 0;
+    //         menuloop = 1;
+    //         drawSprite(512, 288, 0, 0, 3, 0, 0);
+    //     }
+    // }
 }
 
 void drawBlock(int x, int y, int type, int rot, int index) {
@@ -468,7 +452,7 @@ int printGrid(int** grid) {
             if(grid[i][k] == -1) {
                 lineText[k+1] = ' ';
             } else {
-                lineText[k+1] = (char)(grid[i][k] + 48);
+                lineText[k+1] = '0';//(char)(grid[i][k] + 48);
             }
         }
         drawText(25, 10 + i, lineText);
@@ -491,7 +475,7 @@ void drawGrid(int** grid) {
     }
 }
 
-void printCount(int count) {
+void printCount(int y, int count) {
     int x = count;
     char* lineText = malloc(sizeof(char) * (6));
     lineText[5] = '\0';
@@ -499,5 +483,6 @@ void printCount(int count) {
         lineText[4-i] = (char)((x % 10) + 48);
         x /= 10;
     }
-    drawText(2, 20, lineText);
+    drawText(2, y, lineText);
+    free(lineText);
 }

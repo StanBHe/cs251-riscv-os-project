@@ -40,7 +40,6 @@ TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/startup.o			\
 				$(OBJ_DIR)/graphics.o			\
 				$(OBJ_DIR)/memory.o			\
-				$(OBJ_DIR)/sprites.o			\
 				$(OBJ_DIR)/threads.o			\
 
 all: directories $(BIN_DIR)/$(TARGET_NAME)
