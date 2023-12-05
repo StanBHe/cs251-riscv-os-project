@@ -40,6 +40,8 @@ TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/startup.o			\
 				$(OBJ_DIR)/graphics.o			\
 				$(OBJ_DIR)/memory.o			\
+				$(OBJ_DIR)/sprites.o			\
+				$(OBJ_DIR)/threads.o			\
 
 all: directories $(BIN_DIR)/$(TARGET_NAME)
 
@@ -52,12 +54,6 @@ $(OBJ_DIR)/%.o: $(SYS_DIR)/%.s
 
 $(OBJ_DIR)/%.o: $(SYS_DIR)/%.c
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
-
-# $(OBJ_DIR)/%.o: $(GAM_DIR)/%.s
-# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
-
-# $(OBJ_DIR)/%.o: $(GAM_DIR)/%.c
-# 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@

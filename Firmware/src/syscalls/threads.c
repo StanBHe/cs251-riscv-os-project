@@ -1,7 +1,4 @@
 #include "threads.h"
-#include <stdint.h>
-
-typedef uint32_t *TThreadContext;
 
 TThreadContext InitThread();
 

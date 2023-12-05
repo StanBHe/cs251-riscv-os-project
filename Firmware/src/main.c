@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "./syscalls/graphics.h"
-
+#include "./syscalls/threads.h"
 
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
@@ -15,7 +15,6 @@ typedef void (*FunctionPtr)(void);
 int main() {
 
     drawText(1, 1, "OS Started");
-
     while (1){
         if(*CartridgeStatus & 0x1){
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);

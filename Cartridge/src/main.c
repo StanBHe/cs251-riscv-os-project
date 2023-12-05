@@ -1,9 +1,14 @@
 #include <stdint.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
+#include <stdlib.h>
 #include "./syscalls/input.h"
 #include "./spriteData.h"
 #include "./syscalls/graphics.h"
+#include "./syscalls/threads.h"
+
+TThreadContext other_thread;
+TThreadContext MainThread;
 
 uint32_t SCREEN_WIDTH = 512;
 uint32_t SCREEN_HEIGHT = 288;
@@ -99,7 +104,46 @@ void printCount(int count);
     Block types:
 */
 
+void otherThreadFunc() {
+    int last_global = 42;
+    uint32_t global = 42;
+    uint32_t controller_status = 0;
+    int last_reset = GetReset();
+    int reset;
+    int total = 0;
+
+    drawText(2, 6, "Thread 2");
+    while (1) {
+        reset = GetReset();
+        global = GetTicks();
+        if(global != last_global) {
+            drawText(2, 4, "Thread 2");
+            controller_status = GetController();
+            if(controller_status){
+                if(controller_status & 0x2){
+                }
+                if(controller_status & 0x8){
+                    drawText(2, 12, "attempt switch from 2");
+                    SwitchThread(other_thread, &MainThread);
+                }
+            }
+
+            last_global = global;
+            if(last_reset != reset){
+                last_reset = reset;
+            }
+        }
+    }
+    //return a + b;
+}
+
 int main() {
+    int last_global = 42;
+    uint32_t global = 42;
+    uint32_t controller_status = 0;
+
+    int last_reset = GetReset();
+    int reset;
 
     loadSprites(SPRITE_DATA);
     clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
@@ -264,10 +308,7 @@ int main() {
             drawSprite(512, 288, 0, 0, 3, 0, 0);
         }
     }
-
-    return 0;
 }
-
 
 void drawBlock(int x, int y, int type, int rot, int index) {
     drawSprite(GRID_OFFSET_X + (x * BLOCK_SIZE), GRID_OFFSET_Y + (y * BLOCK_SIZE), 1, (8 * type) + rot, 1, 0, index);

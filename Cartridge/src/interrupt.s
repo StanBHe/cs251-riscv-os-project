@@ -1,7 +1,7 @@
 .section .text, "ax"
 
 .global _interrupt_handler, GetTicks, GetController, GetReset, getTicks
-.global fork, exec, kill, wait, get_ppid
+.global fork, exec, kill, wait, get_ppid, SwitchThread, sys_createThread
 .global generate_event, trigger_event
 .global saveGame, getSaves, getSave
 .global loadSprites, drawSpritesHelper, drawText, clearText, clearTextArea, setGraphicsMode, clearSprite
@@ -62,9 +62,9 @@ getSaves:
 getSave:
     li a5, 13
     ecall
-#fork:
-#    li a5, 14
-#    ecall
+sys_createThread:
+    li a5, 14
+    ecall
 exec:
     li a5, 15
     ecall
