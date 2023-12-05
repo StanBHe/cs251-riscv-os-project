@@ -18,7 +18,7 @@ int GRID_OFFSET_Y = 80;
 int GRID_WIDTH = 10;
 int GRID_HEIGHT = 24;
 
-int TIME_STEP = 10;
+int TIME_STEP = 100;
 
 // unrotated block sizes width, height
 int BLOCK_SIZES[7][2] = {{1,4}, {2,3}, {2,3}, {3,2}, {3,2}, {3,2}, {2,2}};
@@ -82,6 +82,10 @@ void drop(int x, int y, int type, int rot, int** grid);
 
 void drawGrid(int** grid);
 
+void deleteGridRows(int** grid);
+
+void printCount(int count);
+
 /*
     drawSprites:
     x, y, z, sprite_index, sprite_type, palette, control structure_index
@@ -114,7 +118,6 @@ int main() {
     int gameloop = 0;
     int scoreloop = 0;
 
-    int bInd = 0;
     int bType = 0;
     int bRot = 0;
     int bX = 0;
@@ -124,6 +127,13 @@ int main() {
     int pressedD = 0;
     int pressedRot = 0;
     int diff = 0;
+
+    int blockCount = 0;
+
+    for(int i = 0; i < 4000; i++) {
+        int* test = (int*)malloc(sizeof(int) * 100);
+        free(test);
+    }
 
     int** grid = (int**)malloc(sizeof(int*) * GRID_HEIGHT);
     for(int i = 0; i < GRID_HEIGHT; i++) {
@@ -183,11 +193,13 @@ int main() {
                             bY++;
                         }
                         else {
-                            placeBlock(bX, bY, bType, bRot, grid);
+                            // placeBlock(bX, bY, bType, bRot, grid);
                             bType = global % 7;
                             bRot = 0;
                             bX = 0;
                             bY = 0;
+                            blockCount++;
+                            printCount(blockCount);
                         }
                     }
                     if(pressedD >= TIME_STEP) {
@@ -234,13 +246,14 @@ int main() {
                     setGraphicsMode(1);
                 }
             }
-            drawBlock(bX, bY, bType, bRot, bInd);
+            drawBlock(bX, bY, bType, bRot, 0);
 
         }
 
         if(global % 10 == 0) {
             printGrid(grid);
             drawGrid(grid);
+            deleteGridRows(grid);
         }
 
         last_global = global;
@@ -333,12 +346,34 @@ void placeBlock(int x, int y, int type, int rot, int** grid) {
     for(int i = 0; i < 4; i++) {
         for(int k = 0; k < 4; k++) {
             if(bMap[i][k] == 1) {
-                grid[i+y][k+x] = type;
+                grid[i+y][k+x] = type;  
             }
         }
     }
     freebMap(bMap);
 }
+
+void deleteGridRows(int** grid) {
+    for(int i = 0; i < GRID_HEIGHT; i++) {
+        int isRow = 1;
+        for(int k = 0; k < GRID_WIDTH; k++) {
+            if(grid[i][k] == -1) {
+                isRow = 0;
+            }
+        }
+        if(isRow == 1) {
+            int* temp = grid[i];
+            for(int k = i - 1; k > 0; k--) {
+                grid[k+1] = grid[k];
+            }
+            for(int k = 0; k < GRID_WIDTH; k++) {
+                temp[k] = -1;
+            }
+            grid[0] = temp;
+        }
+    }
+}
+
 
 void rotatebMap(int** bMap) {
 
@@ -408,7 +443,20 @@ void drawGrid(int** grid) {
             if(grid[i][k] != -1) {
                 drawSprite(GRID_OFFSET_X + (k * BLOCK_SIZE), GRID_OFFSET_Y + (i * BLOCK_SIZE), 2, 
                            grid[i][k], 2, 0, i + (k * GRID_HEIGHT));
+            } else {
+                clearSprite(2, i + (k * GRID_HEIGHT));
             }
         }
     }
+}
+
+void printCount(int count) {
+    int x = count;
+    char* lineText = malloc(sizeof(char) * (6));
+    lineText[5] = '\0';
+    for(int i = 0; i < 5; i++) {
+        lineText[4-i] = (char)((x % 10) + 48);
+        x /= 10;
+    }
+    drawText(2, 20, lineText);
 }
