@@ -49,10 +49,12 @@ void otherThreadFunc() {
 }
 
 int main() {
-    int last_global = 42;
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
 
+    
+
+    int last_global = 0;
+    uint32_t global = 0;
+    uint32_t controller_status = 0;
     int last_reset = GetReset();
     int reset;
 
