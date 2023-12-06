@@ -144,6 +144,7 @@ int main() {
                         menuloop = 0;
                         drawSprite(0, 0, 0, 1, BACKGROUND_T, 0, 0);
                         drawBlockQueue(blockQueue);
+                        printGrid(grid);
                     }
                 }
             }
@@ -183,6 +184,15 @@ int main() {
                         }
                         else {
                             placeBlock(bX, bY, bType, bRot, grid);
+                            int** testMalloc = (int**)malloc(sizeof(int*) * 4);
+                            for(int i = 0; i < 4; i++) {
+                                testMalloc[i] = (int*)malloc(sizeof(int) * 4);
+
+                                for(int k = 0; k < 4; k++) {
+                                    testMalloc[i][k] = 0;
+                                }
+                            }
+
                             bRot = 0;
                             bX = 0;
                             bY = 0;
@@ -194,6 +204,10 @@ int main() {
                             }
                             blockQueue[QUEUE_SIZE-1] = global % 7;
                             drawBlockQueue(blockQueue);
+                            deleteGridRows(grid);
+
+                            printGrid(grid);
+                            drawGrid(grid);
                         }
                     }
                     if(pressedD >= TIME_STEP) {
@@ -240,40 +254,38 @@ int main() {
                     setGraphicsMode(GRAPHICS_MODE);
                 }
                 if(global % (TIME_STEP * 10) == 0) {
-                    if(isValid(bX, bY+1, bType, bRot, grid)) {
-                        bY++;
-                    }
-                    else {
-                        placeBlock(bX, bY, bType, bRot, grid);
-                        bRot = 0;
-                        bX = 0;
-                        bY = 0;
-                        blockCount++;
-                        printCount(blockCount);
-                        bType = blockQueue[0];
-                        for(int i = 0; i < QUEUE_SIZE-1; i++) {
-                            blockQueue[i] = blockQueue[i+1];
-                        }
-                        blockQueue[QUEUE_SIZE-1] = global % 7;
-                        drawBlockQueue(blockQueue);
-                    }
+                    // if(isValid(bX, bY+1, bType, bRot, grid)) {
+                    //     bY++;
+                    // }
+                    // else {
+                    //     placeBlock(bX, bY, bType, bRot, grid);
+                    //     bRot = 0;
+                    //     bX = 0;
+                    //     bY = 0;
+                    //     blockCount++;
+                    //     printCount(blockCount);
+                    //     bType = blockQueue[0];
+                    //     for(int i = 0; i < QUEUE_SIZE-1; i++) {
+                    //         blockQueue[i] = blockQueue[i+1];
+                    //     }
+                    //     blockQueue[QUEUE_SIZE-1] = global % 7;
+                    //     drawBlockQueue(blockQueue);
+                    // }
                 }
             }
             drawBlock(bX, bY, bType, bRot, 0);
         }
 
-        if(global % 10 == 0) {
-            printGrid(grid);
-            drawGrid(grid);
-            deleteGridRows(grid);
-        }
-
         last_global = global;
         if(last_reset != reset){
             last_reset = reset;
-            gameloop = 0;
-            menuloop = 1;
-            drawSprite(0, 0, 0, 0, BACKGROUND_T, 0, 0);
+            for(int i = 0; i < GRID_HEIGHT; i++) {
+                for(int k = 0; k < GRID_WIDTH; k++) {
+                    grid[i][k] = -1;
+                }
+            }
+            printGrid(grid);
+            drawGrid(grid);
         }
     }
 }
@@ -282,10 +294,28 @@ void drawBlock(int x, int y, int type, int rot, int index) {
     drawSprite(GRID_OFFSET_X + (x * BLOCK_SIZE), GRID_OFFSET_Y + (y * BLOCK_SIZE), 1, (8 * type) + rot, 1, 0, index);
 }
 
+void printBlock(int** bmap) {
+    for(int i = 0; i < 4; i++) {
+        for(int k = 0; k < 4; k++) {
+            if(bmap[i][k] == 0) {
+                drawText(1 + 2*k, 1 + 2*i, " ");
+            } else {
+                drawText(1 + 2*k, 1 + 2*i, "*");
+            }
+        }
+    }
+}
+
 int** getbMap(int x, int y, int type, int rot) {
     int** bMap = (int**)malloc(sizeof(int*) * 4);
+    if(!bMap) {
+        drawText(2, 22, "failed to alloc bmap");
+    }
     for(int i = 0; i < 4; i++) {
         bMap[i] = (int*)malloc(sizeof(int) * 4);
+        if(!bMap[i]) {
+            drawText(2, 24, "failed to alloc bmap row");
+        }
         for(int k = 0; k < 4; k++) {
             bMap[i][k] = 0;
         }
@@ -352,6 +382,7 @@ int isValid(int x, int y, int type, int rot, int** grid) {
 
 void placeBlock(int x, int y, int type, int rot, int** grid) {
     int** bMap = getbMap(x, y, type, rot);
+    printBlock(bMap);
     for(int i = 0; i < 4; i++) {
         for(int k = 0; k < 4; k++) {
             if(bMap[i][k] == 1) {
