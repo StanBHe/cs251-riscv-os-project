@@ -101,3 +101,4 @@ setGraphicsMode:
 clearSprite:
     li a5, 26
     ecall
+    

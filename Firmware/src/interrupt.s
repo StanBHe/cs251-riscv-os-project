@@ -57,8 +57,10 @@ _system_call:
 InitThread:
     csrr    gp, mscratch
 
+    la      t0, thread_wrapper
+
     addi    a0,a0,-56
-    sw	    a1, 52(a0)
+    sw	    t0, 52(a0)
     sw	    gp, 48(a0)
     sw	    zero,44(a0)
     sw	    zero,40(a0)
@@ -71,7 +73,7 @@ InitThread:
     sw	    zero,12(a0)
     sw	    zero,8(a0)
     sw	    zero,4(a0)
-    sw	    zero,0(a0)
+    sw	    a1,0(a0)
 
     la gp, __global_pointer$
 
@@ -116,3 +118,10 @@ SwitchThread:
     addi	sp,sp,56
     csrsi mstatus, 0x8
     ret
+
+thread_wrapper:
+    jalr ra, a5, 0
+    j thread_exit
+
+thread_exit:
+    j c_thread_exit
