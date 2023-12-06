@@ -1,20 +1,23 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <time.h>
 #include <stdlib.h>
-#include "./syscalls/input.h"
-#include "./spriteData.h"
+#include "./syscalls/events.h"
 #include "./syscalls/graphics.h"
+#include "./syscalls/input.h"
+#include "./syscalls/state.h"
 #include "./syscalls/threads.h"
+#include "./syscalls/time.h"
+#include "./usefulValues.h"
+#include "./spriteData.h"
 
 TThreadContext other_thread;
 TThreadContext MainThread;
 
-uint32_t SCREEN_WIDTH = 512;
-uint32_t SCREEN_HEIGHT = 288;
-
-uint32_t TEXT_WIDTH = 64;
-uint32_t TEXT_HEIGHT = 36;
+volatile int last_global = 0;
+volatile int global = 0;
+volatile int controller_status = 0;
+volatile int last_reset = 0;
+volatile int reset;
 
 int BLOCK_SIZE = 8;
 int GRID_OFFSET_X = 207;
@@ -25,7 +28,8 @@ int GRID_HEIGHT = 24;
 
 int TIME_STEP = 100;
 
-// unrotated block sizes width, height
+int QUEUE_SIZE = 5;
+
 int BLOCK_SIZES[7][2] = {{1,4}, {2,3}, {2,3}, {3,2}, {3,2}, {3,2}, {2,2}};
 
 int BLOCK_ROT_MODS[7] = {2, 4, 4, 2, 2, 4, 1};
@@ -68,7 +72,6 @@ int INIT_BLOCK_STRUCTURES[7][4][4] = {
 
 void drawBlock(int x, int y, int type, int rot, int index);
 
-// returns x position shift if rotated block moved
 int getRotateOffset(int x, int y, int type, int rot);
 
 int** getbMap(int x, int y, int type, int rot);
@@ -91,60 +94,29 @@ void deleteGridRows(int** grid);
 
 void printCount(int count);
 
-/*
-    drawSprites:
-    x, y, z, sprite_index, sprite_type, palette, control structure_index
-    sprite types: 0 = large, 1 = medium, 2 = small, 3 = background
-
-    Controller Mapping:
-          w=02             u=10  i=20
-    a=01        d=08  cmd  
-          x=04             j=40  k=80
-
-    Block types:
-*/
+void drawBlockQueue(int* queue);
 
 int main() {
-    int last_global = 42;
-    uint32_t global = 42;
-    uint32_t controller_status = 0;
-
-    int last_reset = GetReset();
-    int reset;
+    last_reset = getReset();
 
     loadSprites(SPRITE_DATA);
     clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
-    setGraphicsMode(1);
-    drawSprite(0, 0, 0, 0, 3, 0, 0);
-
-    int last_reset = GetReset();
-    int reset;
-    int last_global = 0;
-
-    uint32_t global = 0;
-    uint32_t controller_status = 0;
+    setGraphicsMode(GRAPHICS_MODE);
+    drawSprite(0, 0, 0, 0, BACKGROUND_T, 0, 0);
 
     // game var
     int menuloop = 1;
     int gameloop = 0;
     int scoreloop = 0;
-
     int bType = 0;
     int bRot = 0;
     int bX = 0;
     int bY = 0;
-
     int pressedLR = 0;
     int pressedD = 0;
     int pressedRot = 0;
     int diff = 0;
-
     int blockCount = 0;
-
-    for(int i = 0; i < 4000; i++) {
-        int* test = (int*)malloc(sizeof(int) * 100);
-        free(test);
-    }
 
     int** grid = (int**)malloc(sizeof(int*) * GRID_HEIGHT);
     for(int i = 0; i < GRID_HEIGHT; i++) {
@@ -154,18 +126,24 @@ int main() {
         }
     }
 
+    int* blockQueue = (int*)malloc(sizeof(int) * QUEUE_SIZE);
+    for(int i = 0; i < QUEUE_SIZE; i++) {
+        blockQueue[i] = i;
+    }
+
     while (1) {
-        reset = GetReset();
-        global= GetTicks();
+        reset = getReset();
+        global= getTicks();
 
         if(menuloop) {
             if(global != last_global){
-                controller_status = GetController();
+                controller_status = getController();
                 if(controller_status){
-                    if(controller_status & 0x10){
+                    if(controller_status & U_KEY){
                         gameloop = 1;
                         menuloop = 0;
-                        drawSprite(0, 0, 0, 1, 3, 0, 0);
+                        drawSprite(0, 0, 0, 1, BACKGROUND_T, 0, 0);
+                        drawBlockQueue(blockQueue);
                     }
                 }
             }
@@ -174,8 +152,8 @@ int main() {
         if(gameloop) {
             if(global != last_global){
                 diff = global - last_global;
-                controller_status = GetController();
-                if(controller_status & 0x1) {
+                controller_status = getController();
+                if(controller_status & A_KEY) {
                     if(isValid(bX-1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
                         bX--;
                     }
@@ -184,7 +162,7 @@ int main() {
                     }
                     pressedLR += diff;
                 }
-                else if(controller_status & 0x8) {
+                else if(controller_status & D_KEY) {
                     if(isValid(bX+1, bY, bType, bRot, grid) && (pressedLR==0 || pressedLR >= TIME_STEP)) {
                         bX++;
                     }
@@ -196,21 +174,26 @@ int main() {
                 else {
                     pressedLR = 0;
                 }
-                if(controller_status & 0x2){
+                if(controller_status & W_KEY){
                 }
-                if(controller_status & 0x4){
+                if(controller_status & X_KEY){
                     if(pressedD==0 || pressedD >= TIME_STEP) {
                         if(isValid(bX, bY+1, bType, bRot, grid)) {
                             bY++;
                         }
                         else {
-                            // placeBlock(bX, bY, bType, bRot, grid);
-                            bType = global % 7;
+                            placeBlock(bX, bY, bType, bRot, grid);
                             bRot = 0;
                             bX = 0;
                             bY = 0;
                             blockCount++;
                             printCount(blockCount);
+                            bType = blockQueue[0];
+                            for(int i = 0; i < QUEUE_SIZE-1; i++) {
+                                blockQueue[i] = blockQueue[i+1];
+                            }
+                            blockQueue[QUEUE_SIZE-1] = global % 7;
+                            drawBlockQueue(blockQueue);
                         }
                     }
                     if(pressedD >= TIME_STEP) {
@@ -221,7 +204,7 @@ int main() {
                 else {
                     pressedD = 0;
                 }
-                if(controller_status & 0x10){
+                if(controller_status & U_KEY) {
                     if(pressedRot == 0) {
                         int offset = 0;
                         offset = getRotateOffset(bX, bY, bType, bRot);
@@ -234,7 +217,7 @@ int main() {
                         pressedRot = 1;
                     }
                 }
-                else if(controller_status & 0x20){
+                else if(controller_status & I_KEY) {
                     if(pressedRot == 0) {
                         int offset = 0;
                         offset = getRotateOffset(bX, bY, bType, bRot);
@@ -250,15 +233,33 @@ int main() {
                 else {
                     pressedRot = 0;
                 }
-                if(controller_status & 0x40){
-                    setGraphicsMode(0);
+                if(controller_status & J_KEY){
+                    setGraphicsMode(TEXT_MODE);
                 }
-                if(controller_status & 0x80){
-                    setGraphicsMode(1);
+                if(controller_status & K_KEY){
+                    setGraphicsMode(GRAPHICS_MODE);
+                }
+                if(global % (TIME_STEP * 10) == 0) {
+                    if(isValid(bX, bY+1, bType, bRot, grid)) {
+                        bY++;
+                    }
+                    else {
+                        placeBlock(bX, bY, bType, bRot, grid);
+                        bRot = 0;
+                        bX = 0;
+                        bY = 0;
+                        blockCount++;
+                        printCount(blockCount);
+                        bType = blockQueue[0];
+                        for(int i = 0; i < QUEUE_SIZE-1; i++) {
+                            blockQueue[i] = blockQueue[i+1];
+                        }
+                        blockQueue[QUEUE_SIZE-1] = global % 7;
+                        drawBlockQueue(blockQueue);
+                    }
                 }
             }
             drawBlock(bX, bY, bType, bRot, 0);
-
         }
 
         if(global % 10 == 0) {
@@ -272,7 +273,7 @@ int main() {
             last_reset = reset;
             gameloop = 0;
             menuloop = 1;
-            drawSprite(512, 288, 0, 0, 3, 0, 0);
+            drawSprite(0, 0, 0, 0, BACKGROUND_T, 0, 0);
         }
     }
 }
@@ -467,4 +468,22 @@ void printCount(int count) {
         x /= 10;
     }
     drawText(2, 20, lineText);
+    free(lineText);
+}
+
+void drawBlockQueue(int* queue) {
+    int offset = 0;
+    for(int i = 0; i < QUEUE_SIZE; i++) {
+        int rot = 0;
+        if(BLOCK_SIZES[queue[i]][0] == 3) {
+            rot = 1;
+        }
+        drawSprite(300, GRID_OFFSET_Y + offset, 1, (8 * queue[i]) + rot, 1, 0, i + 1);
+        if(BLOCK_SIZES[queue[i]][0] == 3 || BLOCK_SIZES[queue[i]][1] == 3) {
+            offset += 8;
+        } else if(queue[i] == 0) {
+            offset += 16;
+        }
+        offset += 24;
+    }
 }

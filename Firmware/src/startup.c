@@ -334,6 +334,9 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     return -1;
 }
 
-
-
+void c_thread_exit(){
+    int a = 1;
+    int b = 2;
+    int c = a+b;
+}
 
