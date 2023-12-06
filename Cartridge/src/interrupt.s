@@ -1,7 +1,7 @@
 .section .text, "ax"
 
-.global _interrupt_handler, GetTicks, GetController, GetReset, getTicks
-.global fork, exec, kill, wait, get_ppid, SwitchThread, sys_createThread
+.global _interrupt_handler, getTicks, getController, getReset
+.global fork, exec, kill, wait, get_ppid, switchThread, sys_createThread
 .global generate_event, trigger_event
 .global saveGame, getSaves, getSave
 .global loadSprites, drawSpritesHelper, drawText, clearText, clearTextArea, setGraphicsMode, clearSprite
@@ -32,13 +32,13 @@ _interrupt_handler:
     addi    sp,sp,40
     mret
 
-GetTicks:
+getTicks:
     li a5, 1
     ecall
-GetController:
+getController:
     li a5, 2
     ecall
-GetReset:
+getReset:
     li a5, 3
     ecall
 generate_event:
@@ -77,13 +77,10 @@ wait:
 get_ppid:
     li a5, 18
     ecall
-getTicks:
-    li a5, 19
-    ecall
 InitThread:
     li a5, 20
     ecall
-SwitchThread:
+switchThread:
     li a5, 21
     ecall
 drawText:
