@@ -46,15 +46,14 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 char *save_data [10];
 
 enum States{
-    INIT,
     RUNNING,
-    BLOCKED,
     READY,
     TERMINATED,
     WAITING
 };
 
 typedef uint32_t *TThreadContext;
+typedef void (*TThreadEntry)(void *);
 
 typedef struct TCB{
     TThreadContext thread_id;
@@ -67,8 +66,6 @@ int num_threads;
 extern volatile int global;
 extern volatile uint32_t controller_status;
 extern volatile int reset;
-
-typedef void (*TThreadEntry)(void *);
 
 TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry, void *param);
 void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
@@ -103,11 +100,14 @@ void init(void){
     num_threads = 0;
 
     TCB *main_thread_TCB = (TCB*)malloc(sizeof(TCB));
+
+    uint32_t *OtherThreadStack = (uint32_t*) malloc(1024 * sizeof(uint32_t));
     main_thread_TCB->thread_id = MainThread;
     main_thread_TCB->thread_state = RUNNING;
 
     thread_control_sys[num_threads] = main_thread_TCB;
     num_threads += 1;
+
     currentThread = 0; 
 
     time_slice = 10;
@@ -126,15 +126,32 @@ void c_interrupt_handler(uint32_t mcause){
         thread_runtime += 1;
         if (thread_runtime >= time_slice) {
             thread_runtime = 0;
-            // if(num_threads > 1){
-            //     if(currentThread ==0){
-            //         currentThread = 1;
-            //         SwitchThread(&thread_control_sys[0]->thread_id,thread_control_sys[1]->thread_id);
-            //     }else{
-            //         currentThread = 0;
-            //         SwitchThread(&thread_control_sys[1]->thread_id,thread_control_sys[0]->thread_id);
-            //     }
-            // }
+
+            if (num_threads > 1) {
+                thread_control_sys[currentThread]->thread_state = READY;
+
+                int foundNextThread = 0;
+                while (!foundNextThread) {  // keep iterating through thread list until one that is READY is found
+                    if (currentThread == num_threads-1) {
+                        currentThread = 0;
+
+                        if (thread_control_sys[currentThread]->thread_state == READY) {
+                            foundNextThread = 1;
+                            thread_control_sys[currentThread]->thread_state = RUNNING;
+                            SwitchThread(&thread_control_sys[num_threads-1]->thread_id, thread_control_sys[currentThread]->thread_id);
+                        }
+                    } else {
+                        currentThread += 1;
+
+                        if (thread_control_sys[currentThread]->thread_state == READY) {
+                            foundNextThread = 1;
+                            thread_control_sys[currentThread]->thread_state = RUNNING;
+                            SwitchThread(&thread_control_sys[currentThread-1]->thread_id, thread_control_sys[currentThread]->thread_id);
+                        }
+                    }
+                }
+            }
+
         }
     }
     else if (mcause == 2147483659){
@@ -154,6 +171,39 @@ void c_interrupt_handler(uint32_t mcause){
         }
         INTERRUPT_PENDING_REGISTER = (INTERRUPT_PENDING_REGISTER & 0xFFFD);
     }   
+}
+
+TThreadContext create_TCB(uint32_t *OtherThreadStack, TThreadEntry entry, void *param){
+    if (num_threads > 10) {
+        return -1;
+    }
+
+    TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
+    new_TCB->thread_id = InitThread(OtherThreadStack + 128, entry, param);
+    new_TCB->thread_state = READY;
+
+    thread_control_sys[num_threads] = new_TCB;
+    num_threads += 1;
+
+    return (TThreadContext)new_TCB->thread_id;
+}
+
+void c_thread_exit(){
+    thread_control_sys[currentThread]->thread_state = TERMINATED;
+
+    // Remove currentThread and shift everything after it in array to left by 1
+    for (int i = currentThread; i < num_threads-1; i++) {
+        thread_control_sys[i] = thread_control_sys[i+1];
+    }
+    thread_control_sys[num_threads-1] = NULL;
+
+    if (currentThread == num_threads-1) {
+        currentThread = 0;
+    } else {
+        currentThread += 1;
+    }
+
+    num_threads -= 1;
 }
 
 uint32_t os_get_all_saves(){
@@ -221,17 +271,6 @@ uint32_t os_save_game(uint32_t arg0, uint32_t arg1){
     return -1;
 }
 
-TThreadContext create_TCB(uint32_t *OtherThreadStack, TThreadEntry entry, void *param){
-    TCB *new_TCB = (TCB*)malloc(sizeof(TCB));
-    new_TCB->thread_id = InitThread(OtherThreadStack + 128, entry, param);
-    new_TCB->thread_state = INIT;
-
-    thread_control_sys[num_threads] = new_TCB;
-    num_threads += 1;
-
-    return (TThreadContext)new_TCB->thread_id;
-}
-
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
     if(1 == call){
         return global;
@@ -242,10 +281,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(3 == call){
         return reset;
     }
-    else if(4 == call){
-        return 0;  // generate event
-    }
-
     else if(6 == call) {
         return (void*)malloc((size_t)arg0);
     }
@@ -287,9 +322,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(17 == call){
         // wait(arg0);
         return 0;
-    }
-    else if(18 == call){
-        return 0; // get_ppid;
     }
     else if(20 == call){
         return 0;
@@ -334,9 +366,4 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     return -1;
 }
 
-void c_thread_exit(){
-    int a = 1;
-    int b = 2;
-    int c = a+b;
-}
 

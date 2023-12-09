@@ -8,6 +8,12 @@
 
 TThreadContext other_thread;
 TThreadContext MainThread;
+TThreadContext second_thread;
+
+void secondThreadFunc() {
+    int a = 2;
+    int b = 3;
+}
 
 void otherThreadFunc() {
     int last_global = 42;
@@ -19,6 +25,8 @@ void otherThreadFunc() {
     int total = 0;
 
     drawText(2, 6, "Thread 2");
+
+    second_thread = createThread(secondThreadFunc, NULL);
 
     // while (1) {
     //     reset = GetReset();
@@ -48,6 +56,7 @@ void otherThreadFunc() {
     //return a + b;
 }
 
+
 int main() {
     int last_global = 42;
     uint32_t global = 42;
@@ -59,6 +68,7 @@ int main() {
     drawText(2, 2, "In Cartridge");
 
     other_thread = createThread(otherThreadFunc, NULL);
+    second_thread = createThread(secondThreadFunc, NULL);
 
     while (1) {
         drawText(2, 4, "Thread 1");
@@ -69,13 +79,13 @@ int main() {
             if(controller_status){
                 if(controller_status & 0x1){
                     drawText(2, 10, "going to thread 2");
-                    SwitchThread(&MainThread, other_thread);
+                    other_thread = createThread(otherThreadFunc, NULL);
+                    // SwitchThread(&MainThread, other_thread);
                 }
             }
             last_global = global;
             if(last_reset != reset){
                 // createThread((void*)blank_func, NULL);
-                SwitchThread(&MainThread, other_thread);
 
                 last_reset = reset;
             }
