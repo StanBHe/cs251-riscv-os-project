@@ -18,6 +18,7 @@ volatile int global = 0;
 volatile int controller_status = 0;
 volatile int last_reset = 0;
 volatile int reset;
+volatile int rowsDeleted = 0;
 
 int BLOCK_SIZE = 8;
 int GRID_OFFSET_X = 207;
@@ -82,7 +83,7 @@ void rotatebMap(int** bMap);
 
 int isValid(int x, int y, int type, int rot, int** grid);
 
-void placeBlock(int x, int y, int type, int rot, int** grid);
+int placeBlock(int x, int y, int type, int rot, int** grid);
 
 int printGrid(int** grid);
 
@@ -92,7 +93,7 @@ void drawGrid(int** grid);
 
 void deleteGridRows(int** grid);
 
-void printCount(int count);
+void printNumber(int x, int y, int count);
 
 void drawBlockQueue(int* queue);
 
@@ -105,15 +106,15 @@ int main() {
     drawSprite(0, 0, 0, 0, BACKGROUND_T, 0, 0);
 
     // game var
-    int menuloop = 1;
-    int gameloop = 0;
+    int gameState = 0;
     int scoreloop = 0;
     int bType = 0;
     int bRot = 0;
-    int bX = 0;
+    int bX = 5;
     int bY = 0;
     int pressedLR = 0;
     int pressedD = 0;
+    int pressedU = 0;
     int pressedRot = 0;
     int diff = 0;
     int blockCount = 0;
@@ -134,15 +135,15 @@ int main() {
     while (1) {
         reset = getReset();
         global= getTicks();
+        controller_status = getController();
 
-        if(menuloop) {
+        if(gameState == 0) {
             if(global != last_global){
-                controller_status = getController();
                 if(controller_status){
                     if(controller_status & U_KEY){
-                        gameloop = 1;
-                        menuloop = 0;
+                        gameState = 1;
                         drawSprite(0, 0, 0, 1, BACKGROUND_T, 0, 0);
+                        drawGrid(grid);
                         drawBlockQueue(blockQueue);
                         printGrid(grid);
                     }
@@ -150,7 +151,25 @@ int main() {
             }
         }
 
-        if(gameloop) {
+        if(gameState == 2) {
+            if(controller_status) {
+                if(controller_status & K_KEY){
+                    setGraphicsMode(GRAPHICS_MODE);
+                    drawSprite(0, 0, 2, 0, BACKGROUND_T, 0, 0);
+                    rowsDeleted = 0;
+                    gameState = 0;
+                    for(int i = 0; i < GRID_HEIGHT; i++) {
+                        for(int k = 0; k < GRID_WIDTH; k++) {
+                            grid[i][k] = -1;
+                        }
+                    }
+                    drawGrid(grid);
+                    clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
+                }
+            }
+        }
+
+        if(gameState == 1) {
             if(global != last_global){
                 diff = global - last_global;
                 controller_status = getController();
@@ -183,31 +202,23 @@ int main() {
                             bY++;
                         }
                         else {
-                            placeBlock(bX, bY, bType, bRot, grid);
-                            int** testMalloc = (int**)malloc(sizeof(int*) * 4);
-                            for(int i = 0; i < 4; i++) {
-                                testMalloc[i] = (int*)malloc(sizeof(int) * 4);
-
-                                for(int k = 0; k < 4; k++) {
-                                    testMalloc[i][k] = 0;
+                            if(placeBlock(bX, bY, bType, bRot, grid)) {
+                                bRot = 0;
+                                bX = 5;
+                                bY = 0;
+                                blockCount++;
+                                bType = blockQueue[0];
+                                for(int i = 0; i < QUEUE_SIZE-1; i++) {
+                                    blockQueue[i] = blockQueue[i+1];
                                 }
+                                blockQueue[QUEUE_SIZE-1] = global % 7;
+                                
+                                drawBlockQueue(blockQueue);
+                                deleteGridRows(grid);
+                                printNumber(2, 20, blockCount);
+                                printGrid(grid);
+                                drawGrid(grid);
                             }
-
-                            bRot = 0;
-                            bX = 0;
-                            bY = 0;
-                            blockCount++;
-                            printCount(blockCount);
-                            bType = blockQueue[0];
-                            for(int i = 0; i < QUEUE_SIZE-1; i++) {
-                                blockQueue[i] = blockQueue[i+1];
-                            }
-                            blockQueue[QUEUE_SIZE-1] = global % 7;
-                            drawBlockQueue(blockQueue);
-                            deleteGridRows(grid);
-
-                            printGrid(grid);
-                            drawGrid(grid);
                         }
                     }
                     if(pressedD >= TIME_STEP) {
@@ -254,23 +265,41 @@ int main() {
                     setGraphicsMode(GRAPHICS_MODE);
                 }
                 if(global % (TIME_STEP * 10) == 0) {
-                    // if(isValid(bX, bY+1, bType, bRot, grid)) {
-                    //     bY++;
-                    // }
-                    // else {
-                    //     placeBlock(bX, bY, bType, bRot, grid);
-                    //     bRot = 0;
-                    //     bX = 0;
-                    //     bY = 0;
-                    //     blockCount++;
-                    //     printCount(blockCount);
-                    //     bType = blockQueue[0];
-                    //     for(int i = 0; i < QUEUE_SIZE-1; i++) {
-                    //         blockQueue[i] = blockQueue[i+1];
-                    //     }
-                    //     blockQueue[QUEUE_SIZE-1] = global % 7;
-                    //     drawBlockQueue(blockQueue);
-                    // }
+                    if(isValid(bX, bY+1, bType, bRot, grid)) {
+                        bY++;
+                    }
+                    else {
+                        if(placeBlock(bX, bY, bType, bRot, grid)) {
+                            bRot = 0;
+                            bX = 5;
+                            bY = 0;
+                            blockCount++;
+                            bType = blockQueue[0];
+                            for(int i = 0; i < QUEUE_SIZE-1; i++) {
+                                blockQueue[i] = blockQueue[i+1];
+                            }
+                            blockQueue[QUEUE_SIZE-1] = global % 7;
+                            
+                            drawBlockQueue(blockQueue);
+                            deleteGridRows(grid);
+                            printNumber(2, 20, blockCount);
+                            printGrid(grid);
+                            drawGrid(grid);
+                        } else {
+                            // game over
+                            clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
+                            drawText(5, 5, "Game Over");
+                            drawText(5, 10, "Blocks Placed:");
+                            printNumber(5, 12, blockCount);
+                            drawText(5, 16, "Lines Cleared:");
+                            printNumber(5, 18, rowsDeleted);
+                            drawText(5, 22, "Final Score:");
+                            printNumber(5, 24, (rowsDeleted * 40) + (blockCount * 5));
+                            drawText(5, 30, "Press K to return to start screen");
+                            setGraphicsMode(TEXT_MODE);
+                            gameState = 2;
+                        }
+                    }
                 }
             }
             drawBlock(bX, bY, bType, bRot, 0);
@@ -292,18 +321,6 @@ int main() {
 
 void drawBlock(int x, int y, int type, int rot, int index) {
     drawSprite(GRID_OFFSET_X + (x * BLOCK_SIZE), GRID_OFFSET_Y + (y * BLOCK_SIZE), 1, (8 * type) + rot, 1, 0, index);
-}
-
-void printBlock(int** bmap) {
-    for(int i = 0; i < 4; i++) {
-        for(int k = 0; k < 4; k++) {
-            if(bmap[i][k] == 0) {
-                drawText(1 + 2*k, 1 + 2*i, " ");
-            } else {
-                drawText(1 + 2*k, 1 + 2*i, "*");
-            }
-        }
-    }
 }
 
 int** getbMap(int x, int y, int type, int rot) {
@@ -380,7 +397,11 @@ int isValid(int x, int y, int type, int rot, int** grid) {
     return 1;
 }
 
-void placeBlock(int x, int y, int type, int rot, int** grid) {
+int placeBlock(int x, int y, int type, int rot, int** grid) {
+    if(!isValid(x, y, type, rot, grid)) {
+        // game over
+        return 0;
+    }
     int** bMap = getbMap(x, y, type, rot);
     printBlock(bMap);
     for(int i = 0; i < 4; i++) {
@@ -391,6 +412,7 @@ void placeBlock(int x, int y, int type, int rot, int** grid) {
         }
     }
     freebMap(bMap);
+    return 1;
 }
 
 void deleteGridRows(int** grid) {
@@ -402,14 +424,16 @@ void deleteGridRows(int** grid) {
             }
         }
         if(isRow == 1) {
-            int* temp = grid[i];
+            rowsDeleted++;
+            printNumber(2, 22, rowsDeleted);
             for(int k = i - 1; k > 0; k--) {
-                grid[k+1] = grid[k];
+                for(int j = 0; j < GRID_WIDTH; j++) {
+                    grid[k+1][j] = grid[k][j];
+                }
             }
-            for(int k = 0; k < GRID_WIDTH; k++) {
-                temp[k] = -1;
+            for(int j = 0; j < GRID_WIDTH; j++) {
+                grid[0][j] = -1;
             }
-            grid[0] = temp;
         }
     }
 }
@@ -457,6 +481,50 @@ int getRotateOffset(int x, int y, int type, int rot) {
     return 0;
 }
 
+void drawGrid(int** grid) {
+    for(int i = 0; i < GRID_HEIGHT; i++) {
+        for(int k = 0; k < GRID_WIDTH; k++) {
+            if(grid[i][k] != -1) {
+                drawSprite(GRID_OFFSET_X + (k * BLOCK_SIZE), GRID_OFFSET_Y + (i * BLOCK_SIZE), 2, 
+                           grid[i][k], 2, 0, i + (k * GRID_HEIGHT));
+            } else {
+                clearSprite(2, i + (k * GRID_HEIGHT));
+            }
+        }
+    }
+}
+
+void drawBlockQueue(int* queue) {
+    int offset = 0;
+    for(int i = 0; i < QUEUE_SIZE; i++) {
+        int rot = 0;
+        if(BLOCK_SIZES[queue[i]][0] == 3) {
+            rot = 1;
+        }
+        drawSprite(300, GRID_OFFSET_Y + offset, 1, (8 * queue[i]) + rot, 1, 0, i + 1);
+        if(BLOCK_SIZES[queue[i]][0] == 3 || BLOCK_SIZES[queue[i]][1] == 3) {
+            offset += 8;
+        } else if(queue[i] == 0) {
+            offset += 16;
+        }
+        offset += 24;
+    }
+}
+
+// text mode functions
+
+void printBlock(int** bmap) {
+    for(int i = 0; i < 4; i++) {
+        for(int k = 0; k < 4; k++) {
+            if(bmap[i][k] == 0) {
+                drawText(1 + 2*k, 1 + 2*i, " ");
+            } else {
+                drawText(1 + 2*k, 1 + 2*i, "*");
+            }
+        }
+    }
+}
+
 int printGrid(int** grid) {
     for(int i = 0; i < GRID_HEIGHT; i++) {
         char* lineText = malloc(sizeof(char) * (GRID_WIDTH + 3));
@@ -477,44 +545,14 @@ int printGrid(int** grid) {
     drawText(25, 10 + GRID_HEIGHT, "XXXXXXXXXXXX");
 }
 
-void drawGrid(int** grid) {
-    for(int i = 0; i < GRID_HEIGHT; i++) {
-        for(int k = 0; k < GRID_WIDTH; k++) {
-            if(grid[i][k] != -1) {
-                drawSprite(GRID_OFFSET_X + (k * BLOCK_SIZE), GRID_OFFSET_Y + (i * BLOCK_SIZE), 2, 
-                           grid[i][k], 2, 0, i + (k * GRID_HEIGHT));
-            } else {
-                clearSprite(2, i + (k * GRID_HEIGHT));
-            }
-        }
-    }
-}
-
-void printCount(int count) {
-    int x = count;
+void printNumber(int x, int y, int count) {
+    int c = count;
     char* lineText = malloc(sizeof(char) * (6));
     lineText[5] = '\0';
     for(int i = 0; i < 5; i++) {
-        lineText[4-i] = (char)((x % 10) + 48);
-        x /= 10;
+        lineText[4-i] = (char)((c % 10) + 48);
+        c /= 10;
     }
-    drawText(2, 20, lineText);
+    drawText(x, y, lineText);
     free(lineText);
-}
-
-void drawBlockQueue(int* queue) {
-    int offset = 0;
-    for(int i = 0; i < QUEUE_SIZE; i++) {
-        int rot = 0;
-        if(BLOCK_SIZES[queue[i]][0] == 3) {
-            rot = 1;
-        }
-        drawSprite(300, GRID_OFFSET_Y + offset, 1, (8 * queue[i]) + rot, 1, 0, i + 1);
-        if(BLOCK_SIZES[queue[i]][0] == 3 || BLOCK_SIZES[queue[i]][1] == 3) {
-            offset += 8;
-        } else if(queue[i] == 0) {
-            offset += 16;
-        }
-        offset += 24;
-    }
 }
