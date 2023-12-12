@@ -20,6 +20,9 @@ volatile int last_reset = 0;
 volatile int reset;
 volatile int rowsDeleted = 0;
 
+int SCORE_X_POS = 210;
+int SCORE_Y_POS = 20;
+
 int BLOCK_SIZE = 8;
 int GRID_OFFSET_X = 207;
 int GRID_OFFSET_Y = 80;
@@ -27,7 +30,7 @@ int GRID_OFFSET_Y = 80;
 int GRID_WIDTH = 10;
 int GRID_HEIGHT = 24;
 
-int TIME_STEP = 100;
+int TIME_STEP = 20;
 
 int QUEUE_SIZE = 5;
 
@@ -97,6 +100,8 @@ void printNumber(int x, int y, int count);
 
 void drawBlockQueue(int* queue);
 
+void drawNumber(int x, int y, int count);
+
 int main() {
     last_reset = getReset();
 
@@ -118,6 +123,12 @@ int main() {
     int pressedRot = 0;
     int diff = 0;
     int blockCount = 0;
+    int aC_xPos = 30;
+    int aC_yPos = 120;
+    int xC_xPos = 60;
+    int xC_yPos = 200;
+    int dC_xPos = 90;
+    int dC_yPos = 120;
 
     int** grid = (int**)malloc(sizeof(int*) * GRID_HEIGHT);
     for(int i = 0; i < GRID_HEIGHT; i++) {
@@ -141,11 +152,23 @@ int main() {
             if(global != last_global){
                 if(controller_status){
                     if(controller_status & U_KEY){
+                        aC_xPos = 30;
+                        aC_yPos = 120;
+                        xC_xPos = 60;
+                        xC_yPos = 200;
+                        dC_xPos = 90;
+                        dC_yPos = 120;
                         gameState = 1;
                         drawSprite(0, 0, 0, 1, BACKGROUND_T, 0, 0);
+                        drawSprite(340, 100, 1, 0, LARGE_T, 0, 0);
+                        drawSprite(410, 100, 1, 1, LARGE_T, 0, 1);
+                        drawSprite(aC_xPos, aC_yPos, 1, 2, LARGE_T, 0, 2);
+                        drawSprite(xC_xPos, xC_yPos, 1, 3, LARGE_T, 0, 3);
+                        drawSprite(dC_xPos, dC_yPos, 1, 4, LARGE_T, 0, 4);
                         drawGrid(grid);
                         drawBlockQueue(blockQueue);
                         printGrid(grid);
+                        drawNumber(SCORE_X_POS, SCORE_Y_POS, 0);
                     }
                 }
             }
@@ -157,6 +180,7 @@ int main() {
                     setGraphicsMode(GRAPHICS_MODE);
                     drawSprite(0, 0, 2, 0, BACKGROUND_T, 0, 0);
                     rowsDeleted = 0;
+                    blockCount = 0;
                     gameState = 0;
                     for(int i = 0; i < GRID_HEIGHT; i++) {
                         for(int k = 0; k < GRID_WIDTH; k++) {
@@ -218,6 +242,7 @@ int main() {
                                 printNumber(2, 20, blockCount);
                                 printGrid(grid);
                                 drawGrid(grid);
+                                drawNumber(SCORE_X_POS, SCORE_Y_POS, (rowsDeleted * 40) + (blockCount * 5));
                             }
                         }
                     }
@@ -285,6 +310,7 @@ int main() {
                             printNumber(2, 20, blockCount);
                             printGrid(grid);
                             drawGrid(grid);
+                            drawNumber(SCORE_X_POS, SCORE_Y_POS, (rowsDeleted * 40) + (blockCount * 5));
                         } else {
                             // game over
                             clearTextArea(0, 0, TEXT_WIDTH, TEXT_HEIGHT);
@@ -300,6 +326,23 @@ int main() {
                             gameState = 2;
                         }
                     }
+                }
+                if(global % (TIME_STEP * 2) == 0) {
+                    aC_xPos--;
+                    if(aC_xPos < 20) {
+                        aC_xPos = 30;
+                    }
+                    xC_yPos++;
+                    if(xC_yPos > 210) {
+                        xC_yPos = 200;
+                    }
+                    dC_xPos++;
+                    if(dC_xPos > 100) {
+                        dC_xPos = 90;
+                    }
+                    drawSprite(aC_xPos, aC_yPos, 1, 2, LARGE_T, 0, 2);
+                    drawSprite(xC_xPos, xC_yPos, 1, 3, LARGE_T, 0, 3);
+                    drawSprite(dC_xPos, dC_yPos, 1, 4, LARGE_T, 0, 4);
                 }
             }
             drawBlock(bX, bY, bType, bRot, 0);
@@ -319,9 +362,7 @@ int main() {
     }
 }
 
-void drawBlock(int x, int y, int type, int rot, int index) {
-    drawSprite(GRID_OFFSET_X + (x * BLOCK_SIZE), GRID_OFFSET_Y + (y * BLOCK_SIZE), 1, (8 * type) + rot, 1, 0, index);
-}
+// tetris logic functions
 
 int** getbMap(int x, int y, int type, int rot) {
     int** bMap = (int**)malloc(sizeof(int*) * 4);
@@ -438,7 +479,6 @@ void deleteGridRows(int** grid) {
     }
 }
 
-
 void rotatebMap(int** bMap) {
 
     int temp1 = bMap[0][0];
@@ -479,6 +519,12 @@ int getRotateOffset(int x, int y, int type, int rot) {
         }
     }
     return 0;
+}
+
+// drawing functions
+
+void drawBlock(int x, int y, int type, int rot, int index) {
+    drawSprite(GRID_OFFSET_X + (x * BLOCK_SIZE), GRID_OFFSET_Y + (y * BLOCK_SIZE), 1, (8 * type) + rot, 1, 0, index);
 }
 
 void drawGrid(int** grid) {
@@ -545,14 +591,24 @@ int printGrid(int** grid) {
     drawText(25, 10 + GRID_HEIGHT, "XXXXXXXXXXXX");
 }
 
+int NUM_DIGITS = 8;
+
 void printNumber(int x, int y, int count) {
     int c = count;
-    char* lineText = malloc(sizeof(char) * (6));
-    lineText[5] = '\0';
-    for(int i = 0; i < 5; i++) {
-        lineText[4-i] = (char)((c % 10) + 48);
+    char* lineText = malloc(sizeof(char) * (NUM_DIGITS+1));
+    lineText[NUM_DIGITS] = '\0';
+    for(int i = 0; i < NUM_DIGITS; i++) {
+        lineText[NUM_DIGITS-1-i] = (char)((c % 10) + 48);
         c /= 10;
     }
     drawText(x, y, lineText);
     free(lineText);
+}
+
+void drawNumber(int x, int y, int count) {
+    int c = count;
+    for(int i = 0; i < NUM_DIGITS; i++) {
+        drawSprite((MEDIUM_SIZE * (NUM_DIGITS - 1)) + x - (MEDIUM_SIZE * i), y, 1, (c % 10) + 54, MEDIUM_T, 0, 10 + i);
+        c /= 10;
+    }
 }

@@ -11,6 +11,12 @@ typedef enum {
 } SpriteTypes;
 
 typedef enum {
+    LARGE_SIZE = 64,
+    MEDIUM_SIZE = 32,
+    SMALL_SIZE = 16
+} SpriteSize;
+
+typedef enum {
     SCREEN_WIDTH = 512,
     SCREEN_HEIGHT = 288
 } ScreenDimensions;
